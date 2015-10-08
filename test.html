@@ -1,0 +1,23 @@
+<html>
+<head>
+	<script src="./javascript/easeljs-0.8.1.combined.js"></script>
+	<script>
+		function init()	{
+			canvas = document.getElementById("gameCanvas");
+			createjs.Ticker.setFPS(60);
+			createjs.Ticker.timingMode = createjs.Ticker.RAF;
+
+			stage = new createjs.Stage(canvas);
+			createjs.Ticker.on("tick", tick);
+		};
+
+		function tick(evt)
+		{
+			stage.update();
+		}
+	</script>
+</head>
+<body onLoad="init();" bgcolor="#ffffff">
+	<canvas id="gameCanvas" width="1136px" height="640px" style="border: thin black solid; margin: 0 auto;"></canvas>
+</body>
+</html>
