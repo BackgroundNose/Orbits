@@ -19,7 +19,7 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		this.probeList[i].addForce(force);
 		this.probeList[i].Update(delta);
 
-		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius))	{
+		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
 		}
 		
@@ -40,8 +40,15 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 	}
 };
 
+ProbeManager.prototype.clearStuff = function()	{
+	for (var i = 0; i < this.probeList.length; i++)	{
+		this.stage.removeChild(this.probeList[i].sprite);
+	}
+
+	this.probeList.length = 0;
+}
+
 ProbeManager.prototype.spawnProbe = function(position, velocity) {
-	console.log(velocity.toString())
 	var probe = new Probe()
 	probe.moveTo(position);
 	probe.velocity = velocity.clone();

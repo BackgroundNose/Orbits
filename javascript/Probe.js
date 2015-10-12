@@ -20,7 +20,7 @@ function Probe ()
 	this.velocity = new Vector(0,0);
 	this.force = new Vector(0,0);
 
-	this.radius = 10;
+	this.radius = 2;
 	this.kill = false;
 
 	this.path = new Array();

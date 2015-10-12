@@ -40,7 +40,8 @@ function init()  {
 		{id:"planet", src: "Graphics/Planet.png"},
 		{id:"background", src: "Graphics/Background.png"},
 		{id:"ship", src: "Graphics/Ship.png"},
-		{id:"probe", src: "Graphics/Probe.png"}
+		{id:"probe", src: "Graphics/Probe.png"},
+		{id:"mine", src: "Graphics/Mine.png"},
 							]);
 	
 	bar.stage.update();

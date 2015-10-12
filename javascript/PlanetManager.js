@@ -12,6 +12,10 @@ function PlanetManager()
 
 	this.resultVec = new Vector(0,0);
 	this.tempVec = new Vector(0,0);
+
+	this.remake = false;
+
+	this.mine = undefined;
 }
 
 PlanetManager.prototype.Update = function(delta) {
@@ -26,9 +30,17 @@ PlanetManager.prototype.Update = function(delta) {
 			this.dbgShape.graphics.es();
 		}
 	}
+
+	if (this.mine !== undefined && this.mine.kill)	{
+		this.remake = true;
+		this.stage.removeChild(this.mine.sprite);
+		this.mine = undefined;
+	}
 };
 
 PlanetManager.prototype.spawnPlanets = function(num) {
+	console.log("Making planets")
+	this.clearStuff();
 	this.planetList = new Array();
 
 	while(num > 0)	{
@@ -58,6 +70,18 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 		num--;
 	}
 };
+
+PlanetManager.prototype.clearStuff = function()	{
+	if (this.mine !== undefined)	{
+		this.stage.removeChild(this.mine.sprite);
+	}
+
+	for (var i = 0; i < this.planetList.length; i++)	{
+		this.stage.removeChild(this.planetList[i].sprite);
+	}
+	this.remake = false;
+	this.planetList = new Array();
+}
 
 PlanetManager.prototype.getShipSpawn = function(shipSize)	{
 	var placed = false;
@@ -94,19 +118,26 @@ PlanetManager.prototype.attractionFunction = function(pos, planet)	{
 		+ planet.mass / ( Math.pow(pos.seperation(planet.sprite).norm(),2) ) );  // 1/ r^2
 }
 
-PlanetManager.prototype.checkCollisions = function(position, rad)	{
+PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	for (var i = 0; i < this.planetList.length; i++)	{
 		if (collideCircleCircle(position, rad, this.planetList[i].sprite, this.planetList[i].radius))	{
 			return true;
 		}
 	}
+
+	if (this.mine !== undefined && mineCheck && collideCircleCircle(position, rad, this.mine.position, this.mine.radius))	{
+		this.mine.setupDeath();
+		return true;
+	}
 	return false;
 }
 
-PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt)	{
-	var output = {"path":new Array(), "time":0} ;
-	output.path.push(sPos.clone());
-	
+PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, record)	{
+	if (record)	{
+		var output = {"path":new Array(), "time":0} ;
+		output.path.push(sPos.clone());
+	}
+
 	var position = sPos.clone();
 	var velocity = sVel.clone();
 	var force    = new Vector(0,0);
@@ -124,10 +155,64 @@ PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt)	{
 		position.y += velocity.y*TIMESTEP;
 
 		output.path.push(position.clone());
-		if ( this.checkCollisions(position, objRad) )	{
+		if ( this.checkCollisions(position, objRad, false) )	{
 			return output;
 		}
 	}
 
 	return output;
+}
+
+PlanetManager.prototype.makeMine = function(sPos, shipRad, minForce, maxForce, angleTicks, forceTicks, mint, maxt)	{
+	var atick = 360 / angleTicks;
+	var ftick = (maxForce - minForce) / forceTicks;
+
+	var aList = new Array();
+
+	for (var ang = 0; ang < 360; ang += atick)	{
+		aList.push(ang);
+	}
+	shuffleArray(aList);
+
+	var fList = new Array();
+	for (var force = minForce; force <= maxForce; force += ftick)	{
+		fList.push(force);
+	} 
+	shuffleArray(fList);
+
+	var launchV = new Vector(0,-1);
+
+	var maxStep = Math.floor(maxt/TIMESTEP);
+	var minStep = Math.floor(mint/TIMESTEP);
+
+
+
+	for (var f = 0; f < fList.length; f++)	{
+		for (var a = 0; a < aList.length; a++)	{
+			launchV.x = 0;
+			launchV.y = -1;
+			launchV.rotate(toRad(aList[a]));
+			launchV.scalarMult(fList[f]);
+			var result = this.integratePath(sPos, launchV, shipRad, maxt, true);
+			if ( result.path.length-1 > minStep)	{
+				for (var it = Math.min(maxStep,result.path.length-1); it >= minStep; it--)	{
+					var step = result.path[it];
+					if ( step.x <= canvas.width - this.planetBorder.x 
+						&& step.x >= this.planetBorder.x
+						&& step.y <= canvas.height - this.planetBorder.y
+						&& step.y >= this.planetBorder.y )	
+					{
+						this.mine = new Mine();
+						this.mine.moveTo(step);
+						this.stage.addChild(this.mine.sprite);
+						console.log(this.mine.position);
+						return result;
+					}
+				}
+			}
+		}
+	}
+
+	console.log("Failed to make mine");
+	return undefined;
 }
