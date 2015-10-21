@@ -42,6 +42,7 @@ function init()  {
 		{id:"ship", src: "Graphics/Ship.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
 		{id:"mine", src: "Graphics/Mine.png"},
+		{id:"target", src: "Graphics/ScanTarget.png"}
 							]);
 	
 	bar.stage.update();

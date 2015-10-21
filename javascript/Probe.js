@@ -23,7 +23,11 @@ function Probe ()
 	this.radius = 2;
 	this.kill = false;
 
+	this.scannedList = new Array();
+
 	this.path = new Array();
+
+	this.scannedText = new createjs.Text("0", "bold 32px Courier", "#FFF")
 }
 
 Probe.prototype.Update = function(delta)	{
@@ -37,6 +41,11 @@ Probe.prototype.Update = function(delta)	{
 	this.sprite.y = this.position.y;
 
 	this.force.x = this.force.y = 0;
+
+	this.scannedText.x = this.position.x-10;
+	this.scannedText.y = this.position.y-15;
+	this.scannedText.text = this.scannedList.length.toString();
+	
 }
 
 Probe.prototype.addForce = function(force)	{

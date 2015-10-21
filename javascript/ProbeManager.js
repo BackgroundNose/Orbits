@@ -1,8 +1,18 @@
-function ProbeManager()	
+function ProbeManager(minP, maxP, minProp)	
 {
 	this.stage = new createjs.Container();
 	this.probeList = new Array();
 	this.dbgShape = new createjs.Shape();
+
+	this.minLaunchPower = minP;
+	this.maxLaunchPower = maxP;
+	this.minLaunchProp = minProp;
+	this.powerRange = this.maxLaunchPower - this.minLaunchPower;
+
+	this.angQuant = 360/360.0;	// 360/steps
+	this.powerQuant = 1/100;
+
+	this.addScanTexts = false;
 }
 
 ProbeManager.prototype.Update = function(delta, planetManager) {
@@ -22,6 +32,12 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
 		}
+		var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius);
+		for (var s = 0; s < scanReturn.length; s++)	{
+			if (!contains(this.probeList[i].scannedList, scanReturn[s]))	{
+				this.probeList[i].scannedList.push(scanReturn[s]);
+			}
+		}
 		
 		if (DEBUG)	{
 			this.dbgShape.graphics.dc(this.probeList[i].position.x, this.probeList[i].position.y,
@@ -34,6 +50,7 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 	for (var i = 0; i < this.probeList.length; i++)	{
 		if (this.probeList[i].kill)	{
 			this.stage.removeChild(this.probeList[i].sprite);
+			this.stage.removeChild(this.probeList[i].scannedText);
 			this.probeList.splice(i,1);
 			i--;
 		}
@@ -43,15 +60,38 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 ProbeManager.prototype.clearStuff = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
 		this.stage.removeChild(this.probeList[i].sprite);
+		this.stage.removeChild(this.probeList[i].scannedText);
 	}
-
 	this.probeList.length = 0;
 }
 
-ProbeManager.prototype.spawnProbe = function(position, velocity) {
+ProbeManager.prototype.spawnProbe = function(position, angle, power) {
 	var probe = new Probe()
 	probe.moveTo(position);
-	probe.velocity = velocity.clone();
+	probe.velocity = new Vector(0,-1);
+
+	probe.velocity.rotate(toRad(this.quantizeLaunchAngle(angle)));
+	probe.velocity.scalarMult(this.quantizeLaunchPower(power) * this.maxLaunchPower);
 	this.probeList.push(probe);
 	this.stage.addChild(probe.sprite);
+	if (this.addScanTexts)	{
+		this.stage.addChild(probe.scannedText);
+	}
 };
+
+ProbeManager.prototype.checkScans = function(needed)	{
+	for (var i = 0; i < this.probeList.length; i++)	{
+		if (this.probeList[i].scannedList.length >= needed)	{
+			return true;
+		}
+	}
+	return false;
+}
+
+ProbeManager.prototype.quantizeLaunchAngle = function(ang)	{
+	return Math.floor(ang);
+}
+
+ProbeManager.prototype.quantizeLaunchPower = function(prop)	{
+	return Math.floor(prop*100) / 100;
+}

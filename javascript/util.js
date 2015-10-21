@@ -52,6 +52,14 @@ function gramSchmidt(inVec, mag)		{
 	return retVec;
 }
 
+function angleToY(vec)	{
+	var ang = Math.atan2(vec.x, vec.y)-Math.PI;
+	// if (ang < 0)	{
+	// 	return ang + 2*Math.PI;
+	// }
+	return Math.abs(ang);
+}
+
 function intersectRect(r1, r2) {
   return !(r1.x + r1.width <= r2.x || 
   		   r1.y + r1.height <= r2.y ||

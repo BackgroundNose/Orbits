@@ -13,6 +13,13 @@ function PlanetManager()
 	this.resultVec = new Vector(0,0);
 	this.tempVec = new Vector(0,0);
 
+	this.minPlanetRadius = 12;
+	this.maxPlanetRadius = 50;
+	this.minTargetExtraRadius = 25;
+	this.maxTargetExtraRadius = 50;
+
+	this.minMineShipDist = 350;
+
 	this.remake = false;
 
 	this.mine = undefined;
@@ -27,6 +34,18 @@ PlanetManager.prototype.Update = function(delta) {
 			this.dbgShape.graphics.dc(this.planetList[i].sprite.x, 
 									 this.planetList[i].sprite.y, 
 									 this.planetList[i].radius);
+			this.dbgShape.graphics.es();
+			this.dbgShape.graphics.s("#AAF");
+			this.dbgShape.graphics.dc(this.planetList[i].sprite.x, 
+									 this.planetList[i].sprite.y, 
+									 this.planetList[i].targetRadius);
+			this.dbgShape.graphics.es();
+		}
+		if (this.mine !== undefined)	{
+			this.dbgShape.graphics.s("#F33");
+			this.dbgShape.graphics.dc(this.mine.sprite.x, 
+								 this.mine.sprite.y, 
+								 this.mine.radius);
 			this.dbgShape.graphics.es();
 		}
 	}
@@ -45,7 +64,10 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 
 	while(num > 0)	{
 		var placed = false;
-		var planet = new Planet(0.25+Math.random()*0.75);
+		var planetSize = this.minPlanetRadius + Math.random()*(this.maxPlanetRadius-this.minPlanetRadius);
+		var scanSize = planetSize + this.minTargetExtraRadius+(Math.random()*(this.maxTargetExtraRadius-this.minTargetExtraRadius));
+
+		var planet = new Planet(planetSize, scanSize, num);
 
 		while (!placed)	{
 			placed = true;
@@ -61,8 +83,7 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 			}
 		}
 
-		planet.sprite.x = pos.x;
-		planet.sprite.y = pos.y;
+		planet.moveTo(pos);
 
 		this.stage.addChild(planet.sprite);
 		this.planetList.push(planet);
@@ -71,6 +92,12 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 	}
 };
 
+PlanetManager.prototype.addTargetGraphics = function()	{
+	for (var i = 0; i < this.planetList.length; i++ )	{
+		this.stage.addChild(this.planetList[i].targetSprite);
+	}
+}
+
 PlanetManager.prototype.clearStuff = function()	{
 	if (this.mine !== undefined)	{
 		this.stage.removeChild(this.mine.sprite);
@@ -78,6 +105,7 @@ PlanetManager.prototype.clearStuff = function()	{
 
 	for (var i = 0; i < this.planetList.length; i++)	{
 		this.stage.removeChild(this.planetList[i].sprite);
+		this.stage.removeChild(this.planetList[i].targetSprite);
 	}
 	this.remake = false;
 	this.planetList = new Array();
@@ -132,9 +160,19 @@ PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	return false;
 }
 
+PlanetManager.prototype.checkScans = function(position, rad)	{
+	var out = new Array();
+	for (var i = 0; i < this.planetList.length; i++)	{
+		if (collideCircleCircle(position, rad, this.planetList[i].sprite, this.planetList[i].targetRadius))	{
+			out.push(this.planetList[i].num);
+		}
+	}
+	return out;
+}
+
 PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, record)	{
 	if (record)	{
-		var output = {"path":new Array(), "time":0} ;
+		var output = {"path":new Array(), "time":0, "scans":new Array()} ;
 		output.path.push(sPos.clone());
 	}
 
@@ -155,6 +193,14 @@ PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, recor
 		position.y += velocity.y*TIMESTEP;
 
 		output.path.push(position.clone());
+		
+		var scanned = this.checkScans(position, objRad);
+		for (var i = 0; i < scanned.length; i++)	{
+			if (!contains(output.scans, scanned[i]))	{
+				output.scans.push(scanned[i]);
+			}
+		}
+
 		if ( this.checkCollisions(position, objRad, false) )	{
 			return output;
 		}
@@ -163,49 +209,60 @@ PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, recor
 	return output;
 }
 
-PlanetManager.prototype.makeMine = function(sPos, shipRad, minForce, maxForce, angleTicks, forceTicks, mint, maxt)	{
-	var atick = 360 / angleTicks;
-	var ftick = (maxForce - minForce) / forceTicks;
-
+PlanetManager.prototype.makeAngleList = function(probeMan)	{
 	var aList = new Array();
 
-	for (var ang = 0; ang < 360; ang += atick)	{
-		aList.push(ang);
+	for (var ang = 0; ang < 360; ang += probeMan.angQuant)	{
+		aList.push(probeMan.quantizeLaunchAngle(ang));
 	}
 	shuffleArray(aList);
 
+	return aList;
+}
+
+PlanetManager.prototype.makeForceList = function(probeMan)	{
 	var fList = new Array();
-	for (var force = minForce; force <= maxForce; force += ftick)	{
-		fList.push(force);
+	for (var force = probeMan.minLaunchProp; force <= 1.0; force += probeMan.powerQuant)	{
+		fList.push(probeMan.quantizeLaunchPower(force));
 	} 
+
 	shuffleArray(fList);
+	return fList;
+}
+
+PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan)	{
+
+	var aList = this.makeAngleList(probeMan);
+	var fList = this.makeForceList(probeMan);
 
 	var launchV = new Vector(0,-1);
 
 	var maxStep = Math.floor(maxt/TIMESTEP);
 	var minStep = Math.floor(mint/TIMESTEP);
 
-
-
 	for (var f = 0; f < fList.length; f++)	{
 		for (var a = 0; a < aList.length; a++)	{
 			launchV.x = 0;
 			launchV.y = -1;
 			launchV.rotate(toRad(aList[a]));
-			launchV.scalarMult(fList[f]);
-			var result = this.integratePath(sPos, launchV, shipRad, maxt, true);
-			if ( result.path.length-1 > minStep)	{
+			launchV.scalarMult(fList[f]*probeMan.maxLaunchPower);
+
+			var result = this.integratePath(sPos, launchV, probeRad, maxt, true);
+			if ( result.path.length-1 > maxStep)	{
 				for (var it = Math.min(maxStep,result.path.length-1); it >= minStep; it--)	{
 					var step = result.path[it];
 					if ( step.x <= canvas.width - this.planetBorder.x 
 						&& step.x >= this.planetBorder.x
 						&& step.y <= canvas.height - this.planetBorder.y
-						&& step.y >= this.planetBorder.y )	
+						&& step.y >= this.planetBorder.y 
+						&& Math.sqrt(Math.pow(step.x-sPos.x,2) + Math.pow(step.y-sPos.y,2)) >= this.minMineShipDist)
 					{
 						this.mine = new Mine();
 						this.mine.moveTo(step);
 						this.stage.addChild(this.mine.sprite);
-						console.log(this.mine.position);
+						
+						console.log(aList[a], fList[f]);
+
 						return result;
 					}
 				}
@@ -215,4 +272,31 @@ PlanetManager.prototype.makeMine = function(sPos, shipRad, minForce, maxForce, a
 
 	console.log("Failed to make mine");
 	return undefined;
+}
+
+PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minScan, probeMan)	{
+	aList = this.makeAngleList(probeMan);
+	fList = this.makeForceList(probeMan);
+
+	var launchV = new Vector(0,-1);
+	var maxStep = Math.floor(maxt/TIMESTEP);
+	var minStep = Math.floor(mint/TIMESTEP);
+
+	for (var f = 0; f < fList.length; f++)	{
+		for (var a = 0; a < aList.length; a++)	{
+			launchV.x = 0;
+			launchV.y = -1;
+			launchV.rotate(toRad(aList[a]));
+			launchV.scalarMult(fList[f]*probeMan.maxLaunchPower);
+
+			var result = this.integratePath(sPos, launchV, probeRad, maxt, true);
+
+			if (result.scans.length >= minScan)	{
+				this.mine = undefined;
+
+				console.log(aList[a], fList[f], "To Scan:", result.scans.length);
+				return result;
+			}
+		}
+	}
 }
