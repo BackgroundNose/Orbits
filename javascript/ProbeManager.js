@@ -12,7 +12,10 @@ function ProbeManager(minP, maxP, minProp)
 	this.angQuant = 360/360.0;	// 360/steps
 	this.powerQuant = 1/100;
 
-	this.addScanTexts = false;
+	this.scansRequired = 0;
+
+	this.camRect = new createjs.Rectangle(0,0,canvas.width, canvas.height);	//What the camera covers in world space
+
 }
 
 ProbeManager.prototype.Update = function(delta, planetManager) {
@@ -27,7 +30,7 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		var force = new Vector(0,0);
 		planetManager.getTotalAttractionVector(this.probeList[i].position, force);
 		this.probeList[i].addForce(force);
-		this.probeList[i].Update(delta);
+		this.probeList[i].Update(delta, this.camRect);
 
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
@@ -66,7 +69,7 @@ ProbeManager.prototype.clearStuff = function()	{
 }
 
 ProbeManager.prototype.spawnProbe = function(position, angle, power) {
-	var probe = new Probe()
+	var probe = new Probe(this.scansRequired);
 	probe.moveTo(position);
 	probe.velocity = new Vector(0,-1);
 
@@ -74,14 +77,14 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power) {
 	probe.velocity.scalarMult(this.quantizeLaunchPower(power) * this.maxLaunchPower);
 	this.probeList.push(probe);
 	this.stage.addChild(probe.sprite);
-	if (this.addScanTexts)	{
+	if (this.scansRequired > 0)	{
 		this.stage.addChild(probe.scannedText);
 	}
 };
 
-ProbeManager.prototype.checkScans = function(needed)	{
+ProbeManager.prototype.checkScans = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
-		if (this.probeList[i].scannedList.length >= needed)	{
+		if (this.probeList[i].scannedList.length >= this.scansRequired)	{
 			return true;
 		}
 	}
@@ -93,5 +96,5 @@ ProbeManager.prototype.quantizeLaunchAngle = function(ang)	{
 }
 
 ProbeManager.prototype.quantizeLaunchPower = function(prop)	{
-	return Math.floor(prop*100) / 100;
+	return Math.floor(prop*50) / 50;
 }

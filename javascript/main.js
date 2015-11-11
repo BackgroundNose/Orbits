@@ -4,13 +4,26 @@ function mouseMove (event){
 	mouse.y = event.pageY - canvas.offsetTop;
 }
 
+function touchStart(evnt)	{
+	mouse.x = event.touches[0].pageX - canvas.offsetLeft;
+	mouse.y = event.touches[0].pageY - canvas.offsetTop;
+	mouse.down = true;
+}
+
+function touchMove(event)	{
+	mouse.x = event.touches[0].pageX - canvas.offsetLeft;
+	mouse.y = event.touches[0].pageY - canvas.offsetTop;
+}
+
+function touchEnd(evnt)	{
+	mouse.down = false;
+}
+
 function mouseDown(event) {
-	// mouseMove(event);
 	mouse.down = true;
 }
 
 function mouseUp(event)	{
-	// mouseMove(event);
 	mouse.down = false;
 }
 
@@ -33,8 +46,9 @@ function init()  {
 	canvas.addEventListener("mousemove",mouseMove);
 	canvas.addEventListener("mousedown",mouseDown);
 	canvas.addEventListener("mouseup",mouseUp);
-	canvas.addEventListener("touchstart",mouseDown);
-	canvas.addEventListener("touchend", mouseUp);
+	canvas.addEventListener("touchstart",touchStart);
+	canvas.addEventListener("touchmove",touchMove);
+	canvas.addEventListener("touchend", touchEnd);
 
 	preload.loadManifest([	
 		{id:"planet", src: "Graphics/Planet.png"},
@@ -42,7 +56,10 @@ function init()  {
 		{id:"ship", src: "Graphics/Ship.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
 		{id:"mine", src: "Graphics/Mine.png"},
-		{id:"target", src: "Graphics/ScanTarget.png"}
+		{id:"target", src: "Graphics/ScanTarget.png"},
+		{id:"powerBar", src: "Graphics/PowerBar.png"},
+		{id:"radial", src: "Graphics/Radial.png"},
+		{id:"cheatButton", src: "Graphics/CheatButton.png"}
 							]);
 	
 	bar.stage.update();
@@ -77,7 +94,7 @@ function handleComplete()
 
 	stage = new createjs.Stage(canvas);
 
-	createjs.Ticker.on("tick", game.tick,game);
+	createjs.Ticker.on("tick", game.tick, game);
 }
 
 

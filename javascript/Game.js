@@ -30,14 +30,15 @@ function Game()
 }
 
 Game.prototype.Update = function(delta) {
-
 	this.swipe.Update();
 
 	if (this.swipe.complete && this.swipe.swipeLength >= this.minLaunchLength)	{
-		var launchVec = this.swipe.swipeVec
+		var launchVec = this.swipe.swipeVec;
+		var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
 		this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
-										Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength);
-		
+										power);
+		this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
+		this.UI.setRadialBar(toDeg(angleToY(launchVec)));
 		var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
 										this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
 										2,300, true);
@@ -47,6 +48,13 @@ Game.prototype.Update = function(delta) {
 
 	this.UI.Update(delta, this.swipe, this.probeManager);
 
+	if ( this.UI.cheatDown )	{
+		this.probeManager.spawnProbe(this.ship.position, this.planetManager.solutionAngle, 
+									this.planetManager.solutionForce);
+		this.UI.setCheatBar(this.planetManager.solutionForce);
+		this.UI.setRadialBarCheat(this.planetManager.solutionAngle);
+	}
+
 	this.probeManager.Update(delta, this.planetManager);
 	this.planetManager.Update(delta);
 	if (this.levelType == "mine")	{
@@ -54,7 +62,7 @@ Game.prototype.Update = function(delta) {
 			this.setupLevel();
 		}
 	}	else if (this.levelType == "scan")	{
-		if (this.probeManager.checkScans(this.scanRequired))	{
+		if (this.probeManager.checkScans())	{
 			this.setupLevel();
 		}
 	}
@@ -96,15 +104,17 @@ Game.prototype.setupLevel = function()	{
 		
 		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.4)	{
 			console.log("Scan Path")
-			var toScan = 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-3));
+			var toScan = 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-2));
 			result = this.planetManager.makeScanPath(this.ship.position, 2, 5, 15, 
 						toScan, this.probeManager);
 			if (result !== undefined)	{
-				this.UI.drawPath(result.path);
+				if (DEBUG)	{
+					this.UI.drawPath(result.path);
+				}
 				this.levelType = "scan";
 				this.scanRequired = toScan;
 				this.planetManager.addTargetGraphics();
-				this.probeManager.addScanTexts = true;
+				this.probeManager.scansRequired = toScan;
 			}
 			
 		}	else 	{
@@ -112,7 +122,7 @@ Game.prototype.setupLevel = function()	{
 	 		result = this.planetManager.makeMine(this.ship.position, 2, 
 	 							3, 10, this.probeManager);
 			this.levelType = "mine";
-			this.probeManager.addScanTexts = false;
+			this.probeManager.scansRequired = 0;
 		}
 							
 		console.timeEnd("MakeLevel");

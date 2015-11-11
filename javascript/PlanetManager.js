@@ -15,14 +15,16 @@ function PlanetManager()
 
 	this.minPlanetRadius = 12;
 	this.maxPlanetRadius = 50;
-	this.minTargetExtraRadius = 25;
-	this.maxTargetExtraRadius = 50;
+	this.minTargetExtraRadius = 35;
+	this.maxTargetExtraRadius = 70;
 
 	this.minMineShipDist = 350;
 
 	this.remake = false;
 
 	this.mine = undefined;
+	this.solutionForce = undefined;
+	this.solutionAngle = undefined;
 }
 
 PlanetManager.prototype.Update = function(delta) {
@@ -142,7 +144,7 @@ PlanetManager.prototype.getTotalAttractionVector = function(pos, output)	{
 PlanetManager.prototype.attractionFunction = function(pos, planet)	{
 	var result = pos.seperation(planet.sprite);
 	result.normalise();
-	return result.scalarMult(planet.mass*0.0005 / pos.seperation(planet.sprite).norm() // 1/r
+	return result.scalarMult(planet.mass*0.0000 / pos.seperation(planet.sprite).norm() // 1/r
 		+ planet.mass / ( Math.pow(pos.seperation(planet.sprite).norm(),2) ) );  // 1/ r^2
 }
 
@@ -263,6 +265,8 @@ PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan
 						
 						console.log(aList[a], fList[f]);
 
+						this.solutionForce = fList[f];
+						this.solutionAngle = aList[a];
 						return result;
 					}
 				}
@@ -295,6 +299,9 @@ PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minS
 				this.mine = undefined;
 
 				console.log(aList[a], fList[f], "To Scan:", result.scans.length);
+				
+				this.solutionForce = fList[f];
+				this.solutionAngle = aList[a];	
 				return result;
 			}
 		}
