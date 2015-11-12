@@ -16,7 +16,9 @@ Swipe.prototype.done = function()	{
 	this.swiping = false;
 	this.swipeVec.x = this.end.x - this.start.x;
 	this.swipeVec.y = this.end.y - this.start.y;
-	
+
+	this.swipeVec.scalarMult(-1);
+
 	this.swipeLength = this.swipeVec.norm();
 	this.swipeVec.normalise();
 	return;
@@ -49,6 +51,8 @@ Swipe.prototype.Update = function()	{
 	if (this.swiping)	{
 		this.swipeVec.x = this.end.x - this.start.x;
 		this.swipeVec.y = this.end.y - this.start.y;
+
+		this.swipeVec.scalarMult(-1);
 
 		this.swipeLength = this.swipeVec.norm();
 	}
