@@ -36,6 +36,14 @@ function init()  {
 	createjs.Ticker.setFPS(60);
 	createjs.Ticker.timingMode = createjs.Ticker.RAF;
 
+	if (typeof(Storage) !== undefined)	{
+		console.log("There is storage :)")
+		canSave = true;
+	}	else 	{
+		console.log("No browser storage... :(");
+		canSave = false;
+	}
+
 	bar = new LoadingBar( 400, 40, 5, "grey", "black");
 	preload = new createjs.LoadQueue(false);
 
@@ -84,7 +92,11 @@ function handleProgress()
 
 function handleComplete()
 {
+	saveGame = new SaveGame();
+	saveGame.checkExisting();
 	game = new Game();
+
+	game.loadFromSave(saveGame.saveFile);
 
 	mouse.x = mouse.y = 0;
 	mouse.down = false;

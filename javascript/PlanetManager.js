@@ -25,6 +25,8 @@ function PlanetManager()
 	this.mine = undefined;
 	this.solutionForce = undefined;
 	this.solutionAngle = undefined;
+
+	this.shipSpawnRect = new createjs.Rectangle(100,100,canvas.width/2.0, canvas.height-100);
 }
 
 PlanetManager.prototype.Update = function(delta) {
@@ -117,8 +119,8 @@ PlanetManager.prototype.getShipSpawn = function(shipSize)	{
 	var placed = false;
 	while (!placed)	{
 		placed = true;
-		var pos = new Vector(this.planetBorder.x + Math.random()*(canvas.width-this.planetBorder.x*2),
-								this.planetBorder.y + Math.random()*(canvas.height-this.planetBorder.y*2));
+		var pos = new Vector(this.shipSpawnRect.x + Math.random()*(this.shipSpawnRect.width-this.shipSpawnRect.x),
+								this.shipSpawnRect.y + Math.random()*(this.shipSpawnRect.height-this.shipSpawnRect.y));
 		for (var i = 0; i < this.planetList.length; i++)	{
 			if (collideCircleCircle(pos, shipSize, this.planetList[i].sprite, this.planetList[i].radius+this.shipPlanetExclusionZone))	{
 				placed = false;

@@ -37,7 +37,7 @@ function Probe (needScanned)
 	this.scannedText = new createjs.Text("0", "bold 32px Courier", "#FFF")
 }
 
-Probe.prototype.Update = function(delta, camRect)	{
+Probe.prototype.Update = function(delta, camRect, markers)	{
 	this.velocity.x += this.force.x*delta;
 	this.velocity.y += this.force.y*delta;
 
@@ -46,7 +46,7 @@ Probe.prototype.Update = function(delta, camRect)	{
 
 	this.updateRect();
 
-	if (intersectRect(this.rect, camRect))	{
+	if (!markers || intersectRect(this.rect, camRect))	{
 		this.sprite.gotoAndStop("probe");
 		this.sprite.rotation = 0;
 

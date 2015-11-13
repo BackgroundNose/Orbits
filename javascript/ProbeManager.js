@@ -14,6 +14,8 @@ function ProbeManager(minP, maxP, minProp)
 
 	this.scansRequired = 0;
 
+	this.markers = true;
+
 	this.camRect = new createjs.Rectangle(0,0,canvas.width, canvas.height);	//What the camera covers in world space
 
 }
@@ -30,7 +32,7 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		var force = new Vector(0,0);
 		planetManager.getTotalAttractionVector(this.probeList[i].position, force);
 		this.probeList[i].addForce(force);
-		this.probeList[i].Update(delta, this.camRect);
+		this.probeList[i].Update(delta, this.camRect, this.markers);
 
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;

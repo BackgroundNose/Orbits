@@ -15,7 +15,7 @@ function Ship()
                         "images": [preload.getResult("ship")]}) 
 					);
 	this.sprite.gotoAndStop("player");
-	this.sprite.rotation = 180*Math.random();
+	this.sprite.rotation = 90;
 
 	this.position = new Vector(100,100);
 	this.velocity = new Vector(0,0);

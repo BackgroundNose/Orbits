@@ -43,6 +43,66 @@ function UI(min, max)
 	this.forceText.x = canvas.width - 45;
 	this.forceText.y = this.radial.y + 50 + 5;
 	this.stage.addChild(this.forceText);
+
+	this.launched = 0;
+	this.passed = 0;
+	this.skipped = 0;
+	this.probesHere = 0;
+
+	this.textSep = 25;
+
+	this.launchedText = new createjs.Text("0", "bold 36px Courier", "#8BD" );
+	this.launchedText.x = Math.floor(canvas.width/2.0 - (this.launchedText.getBounds().width/2.0));
+	this.launchedText.y = 3;
+	this.stage.addChild(this.launchedText);
+
+	this.probesHereText = new createjs.Text("+0", "bold 36px Courier", "#8BD" );
+	this.probesHereText.x = this.launchedText.x + this.launchedText.getBounds().width;
+	this.probesHereText.y = 3;
+	this.stage.addChild(this.probesHereText);
+
+	this.passedText = new createjs.Text("0", "bold 36px Courier", "#8DB" );
+	this.passedText.x = this.probesHereText.x + this.probesHereText.getBounds().width + this.textSep;
+	this.passedText.y = 3;
+	this.stage.addChild(this.passedText);
+
+	this.skipText = new createjs.Text("0", "bold 36px Courier", "#D33");
+	this.skipText.x = this.passedText.x + this.passedText.getBounds().width  + this.textSep;
+	this.skipText.y = 3;
+	this.stage.addChild(this.skipText);
+}
+
+UI.prototype.updateText = function(launch, here, pass, skip)	{
+	if (launch === undefined) {launch = 0;}
+	if (here === undefined) {here = 0;}
+	if (pass === undefined) {pass = 0;}
+	if (skip === undefined) {skip = 0;}
+
+	this.launched += launch;
+	this.probesHere += here;
+	this.passed	+= pass;
+	this.skipped += skip;
+
+	this.launchedText.text = this.launched.toString();
+	this.probesHereText.text = "+"+this.probesHere.toString();
+	this.passedText.text = this.passed.toString();
+	this.skipText.text = this.skipped.toString();
+
+	var startX = canvas.width/2.0 - (this.launchedText.getBounds().width + 
+									this.probesHereText.getBounds().width + 
+									this.passedText.getBounds().width + 
+									this.skipText.getBounds().width)/2.0;
+
+	this.launchedText.x = startX;
+	this.probesHereText.x = this.launchedText.x + this.launchedText.getBounds().width;
+	this.passedText.x = this.probesHereText.x + this.probesHereText.getBounds().width + this.textSep;
+	this.skipText.x = this.passedText.x + this.passedText.getBounds().width  + this.textSep;
+}
+
+UI.prototype.applyProbesHere = function()	{
+	this.launched += this.probesHere;
+	this.probesHere = 0;
+	this.updateText(0,0,0,0);
 }
 
 UI.prototype.Update = function(delta, swipe, probeMan) {
@@ -62,9 +122,13 @@ UI.prototype.Update = function(delta, swipe, probeMan) {
 		dVec.scalarMult(len);
 		this.drawTargeterArrow(swipe.start.x, swipe.start.y, swipe.start.x+dVec.x, swipe.start.y+dVec.y);
 	}
-
-
 };
+
+UI.prototype.updateScore = function(launch, pass, skip)	{
+	this.launched += launch;
+	this.passed	+= pass;
+	this.skipped += skip;
+}
 
 UI.prototype.drawTargeterArrow = function(startX, startY, endX, endY)	{
 	var lineNorm = new Vector(endX - startX, endY - startY);
@@ -138,7 +202,7 @@ UI.prototype.setActiveBar = function(pwr)	{
 
 UI.prototype.setCheatBar = function(pwr)	{
 	if (this.cheatBar !== undefined)	{
-		this.powerBars[this.activatedBar].gotoAndStop("ina");
+		this.powerBars[this.cheatBar].gotoAndStop("ina");
 	}
 	this.cheatBar = Math.floor(pwr * (this.powerBars.length-1));
 	this.powerBars[this.cheatBar].gotoAndStop("red");
