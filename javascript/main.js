@@ -1,4 +1,3 @@
-
 function mouseMove (event){
 	mouse.x = event.pageX - canvas.offsetLeft;
 	mouse.y = event.pageY - canvas.offsetTop;
@@ -67,8 +66,15 @@ function init()  {
 		{id:"target", src: "Graphics/ScanTarget.png"},
 		{id:"powerBar", src: "Graphics/PowerBar.png"},
 		{id:"radial", src: "Graphics/Radial.png"},
-		{id:"cheatButton", src: "Graphics/CheatButton.png"}
-							]);
+		{id:"cheatButton", src: "Graphics/CheatButton.png"},
+		{id:"pTrail", src: "Graphics/Particles/Trail.png"},
+		{id:"pBasic", src: "Graphics/Particles/Basic.png"},
+		{id:"pExit", src: "Graphics/Particles/Exit.png"},
+		{id:"pFlame", src: "Graphics/Particles/ExplosionFlame.png"},
+		{id:"pCloud", src: "Graphics/Particles/ExplosionCloud.png"},
+		{id:"pSpark", src: "Graphics/Particles/Sparks.png"},
+		{id:"pwhitePx", src: "Graphics/Particles/whitePx.png"}
+				]);
 	
 	bar.stage.update();
 	stage = new createjs.Stage(canvas);

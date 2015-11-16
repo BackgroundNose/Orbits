@@ -8,12 +8,14 @@ function Game()
 
 	this.ship = new Ship();
 
+	this.particleManager = new ParticleManager();
+
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
 	this.transitionEndTime = 1;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
-	this.bkgMoveRate = -15;
+	this.bkgMoveRate = -7;
 	this.planetsMoveRate = -1000;
 	this.transitioning = false;
 	this.nextLevelMade = false;
@@ -31,7 +33,8 @@ function Game()
 	this.levelType = "scan";
 	this.scanRequired = 0;
 
-	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp);
+	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
+										 this.particleManager);
 
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
@@ -39,6 +42,10 @@ function Game()
 	// Initial level setup
 
 	this.setupLevel();
+
+	this.dustEmitter = undefined;
+
+	this.setupParticles();
 	this.ship.moveTo(this.nextShipPos.clone());
 
 	this.setStage();	
@@ -53,18 +60,21 @@ Game.prototype.Update = function(delta) {
 
 	this.swipe.Update();
 
-	if (this.swipe.complete && this.swipe.swipeLength >= this.minLaunchLength)	{
-		var launchVec = this.swipe.swipeVec;
-		var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
-		this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
-										power);
-		this.UI.updateText( 0, 1, 0, 0);
-		this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
-		this.UI.setRadialBar(toDeg(angleToY(launchVec)));
-		var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
-										this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
-										2,300, true);
-		
+	if (this.swipe.complete)	{
+		if (this.swipe.swipeLength >= this.minLaunchLength)	{
+			var launchVec = this.swipe.swipeVec;
+			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
+			this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
+											power);
+			this.UI.updateText( 0, 1, 0, 0);
+			this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
+			this.UI.setRadialBar(toDeg(angleToY(launchVec)));
+			var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
+											this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
+											2,300, true);
+		}	else {
+			this.probeManager.stopOrKillProbe();
+		}
 		// this.UI.drawPath(out.path, 10);
 	}
 
@@ -90,6 +100,8 @@ Game.prototype.Update = function(delta) {
 		}
 	}
 
+	this.particleManager.update(delta, this.probeManager.camRect);
+
 	this.stage.update();
 };
 
@@ -100,9 +112,11 @@ Game.prototype.tick = function(evt)	{
 
 Game.prototype.setStage = function()	{
 	this.stage.addChild(this.background);
+	this.stage.addChild(this.particleManager.subStage);
 	this.stage.addChild(this.planetManager.stage);
 	this.stage.addChild(this.ship.sprite);
 	this.stage.addChild(this.probeManager.stage);
+	this.stage.addChild(this.particleManager.superStage);
 	this.stage.addChild(this.UI.stage);
 
 	if (DEBUG)	{
@@ -110,6 +124,11 @@ Game.prototype.setStage = function()	{
 		this.stage.addChild(this.planetManager.dbgShape);
 	}
 };
+
+Game.prototype.setupParticles = function()	{
+	this.dustEmitter = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(0, 0, canvas.width, canvas.height),
+										  new Vector(-100, -100), new Vector(100, 100));
+}
 
 Game.prototype.moveToNextLevel = function(delta)	{
 	this.transitionElapsed += delta;
@@ -157,8 +176,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.probeManager.stage.x += this.planetsMoveRate * delta;
 		var mu = (this.transitionElapsed-this.transitionStartTime) / (this.transitionMidTime);
 		this.ship.moveTo(new Vector(
-				lerp(this.lastShipPos.x, this.nextShipPos.x, mu),
-				lerp(this.lastShipPos.y, this.nextShipPos.y, mu)
+				cosineInterpolate(this.lastShipPos.x, this.nextShipPos.x, mu),
+				cosineInterpolate(this.lastShipPos.y, this.nextShipPos.y, mu)
 			));
 
 	}	
