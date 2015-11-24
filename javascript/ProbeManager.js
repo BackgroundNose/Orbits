@@ -1,5 +1,6 @@
-function ProbeManager(minP, maxP, minProp)	
+function ProbeManager(minP, maxP, minProp, particleManager)	
 {
+	this.particleManager = particleManager;
 	this.stage = new createjs.Container();
 	this.probeList = new Array();
 	this.dbgShape = new createjs.Shape();
@@ -29,10 +30,12 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		if (DEBUG)	{
 			this.dbgShape.graphics.s("#F55");
 		}
-		var force = new Vector(0,0);
-		planetManager.getTotalAttractionVector(this.probeList[i].position, force);
-		this.probeList[i].addForce(force);
-		this.probeList[i].Update(delta, this.camRect, this.markers);
+		if (this.probeList[i].experienceGravity)	{
+			var force = new Vector(0,0);
+			planetManager.getTotalAttractionVector(this.probeList[i].position, force);
+			this.probeList[i].addForce(force);
+			this.probeList[i].Update(delta, this.camRect, this.markers);
+		}
 
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
@@ -70,19 +73,64 @@ ProbeManager.prototype.clearStuff = function()	{
 	this.probeList.length = 0;
 }
 
-ProbeManager.prototype.spawnProbe = function(position, angle, power) {
+ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
+	if ( this.probeList.length > 0)	{
+		this.refireProbe(angle, power);
+		return;
+	}
 	var probe = new Probe(this.scansRequired);
 	probe.moveTo(position);
-	probe.velocity = new Vector(0,-1);
-
-	probe.velocity.rotate(toRad(this.quantizeLaunchAngle(angle)));
-	probe.velocity.scalarMult(this.quantizeLaunchPower(power) * this.maxLaunchPower);
 	this.probeList.push(probe);
+	this.pushProbe(this.probeList.length-1, angle, power);	
 	this.stage.addChild(probe.sprite);
+
+	smokeVec = new Vector(0,-1);
+	smokeVec.rotate(toRad(angle+180));
+	this.particleManager.addEmitterByType("sSmokePuff", new createjs.Rectangle(position.x, position.y, 1,1), undefined,
+										  undefined, {direction:smokeVec, pm:pm, force:power});
+
 	if (this.scansRequired > 0)	{
 		this.stage.addChild(probe.scannedText);
 	}
 };
+
+ProbeManager.prototype.refireProbe = function(angle, power)	{
+	if (this.probeList.length == 0)	{
+		console.log("Trying to refire non existant probe!");
+		return;
+	}	
+
+	if (!intersectRect(this.camRect, this.probeList[0].rect))	{
+		this.probeList[0].kill = true;
+		this.probeList[0].stopAndWait();
+	}	else	{
+		this.pushProbe(0, angle, power);
+	}
+	return;
+}
+
+ProbeManager.prototype.stopOrKillProbe = function()	{
+	if (this.probeList.length == 0)	{
+		return;
+	}
+
+	if (!intersectRect(this.camRect, this.probeList[0].rect))	{
+		this.probeList[0].kill = true;
+		return;
+	}
+	this.probeList[0].stopAndWait();
+}
+
+ProbeManager.prototype.pushProbe = function(idx, angle, power)	{
+	var probe = this.probeList[idx];
+	var newV = new Vector(0,-1);
+
+	newV.rotate(toRad(this.quantizeLaunchAngle(angle)));
+	newV.scalarMult(this.quantizeLaunchPower(power) * this.maxLaunchPower);
+	probe.velocity.x += newV.x;
+	probe.velocity.y += newV.y;
+	probe.experienceGravity = true;
+}
 
 ProbeManager.prototype.checkScans = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{

@@ -21,6 +21,8 @@ function Probe (needScanned)
 	this.velocity = new Vector(0,0);
 	this.force = new Vector(0,0);
 
+	this.experienceGravity = true;
+
 	this.radius = 2;
 	this.kill = false;
 
@@ -99,4 +101,12 @@ Probe.prototype.moveTo = function(pos) {
 Probe.prototype.updateRect = function()	{
 	this.rect.x = this.position.x - this.box.width/2;
 	this.rect.y = this.position.y - this.box.height/2;
+}
+
+Probe.prototype.stopAndWait = function()	{
+	this.force.x = 0;
+	this.force.y = 0;
+	this.velocity.x = 0;
+	this.velocity.y = 0;
+	this.experienceGravity = false;
 }

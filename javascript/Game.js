@@ -8,13 +8,15 @@ function Game()
 
 	this.ship = new Ship();
 
+	this.particleManager = new ParticleManager();
+
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
 	this.transitionEndTime = 1;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
-	this.bkgMoveRate = -15;
-	this.planetsMoveRate = -1000;
+	this.bkgMoveRate = -7;
+	this.planetsMoveRate = -1500;
 	this.transitioning = false;
 	this.nextLevelMade = false;
 	this.lastShipPos = new Vector(0,0);
@@ -31,7 +33,8 @@ function Game()
 	this.levelType = "scan";
 	this.scanRequired = 0;
 
-	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp);
+	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
+										 this.particleManager);
 
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
@@ -39,6 +42,10 @@ function Game()
 	// Initial level setup
 
 	this.setupLevel();
+
+	this.dustEmitter = undefined;
+
+	this.setupParticles();
 	this.ship.moveTo(this.nextShipPos.clone());
 
 	this.setStage();	
@@ -53,26 +60,29 @@ Game.prototype.Update = function(delta) {
 
 	this.swipe.Update();
 
-	if (this.swipe.complete && this.swipe.swipeLength >= this.minLaunchLength)	{
-		var launchVec = this.swipe.swipeVec;
-		var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
-		this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
-										power);
-		this.UI.updateText( 0, 1, 0, 0);
-		this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
-		this.UI.setRadialBar(toDeg(angleToY(launchVec)));
-		var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
-										this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
-										2,300, true);
-		
-		// this.UI.drawPath(out.path, 10);
+	if (this.swipe.complete)	{
+		if (this.swipe.swipeLength >= this.minLaunchLength)	{
+			var launchVec = this.swipe.swipeVec;
+			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
+			this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
+											power, this.planetManager);
+			this.UI.updateText( 0, 1, 0, 0);
+			this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
+			this.UI.setRadialBar(toDeg(angleToY(launchVec)));
+			var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
+											this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
+											2,300, true);
+		}	else {
+			this.probeManager.stopOrKillProbe();
+		}
+		// this.UI.drawPath(out.path, 1);
 	}
 
 	this.UI.Update(delta, this.swipe, this.probeManager);
 
 	if ( this.UI.cheatDown )	{
 		this.probeManager.spawnProbe(this.ship.position, this.planetManager.solutionAngle, 
-									this.planetManager.solutionForce);
+									this.planetManager.solutionForce, this.planetManager);
 		this.UI.setCheatBar(this.planetManager.solutionForce);
 		this.UI.setRadialBarCheat(this.planetManager.solutionAngle);
 		this.cheated = true;
@@ -90,6 +100,8 @@ Game.prototype.Update = function(delta) {
 		}
 	}
 
+	this.particleManager.update(delta, this.probeManager.camRect);
+
 	this.stage.update();
 };
 
@@ -100,9 +112,11 @@ Game.prototype.tick = function(evt)	{
 
 Game.prototype.setStage = function()	{
 	this.stage.addChild(this.background);
+	this.stage.addChild(this.particleManager.subStage);
 	this.stage.addChild(this.planetManager.stage);
 	this.stage.addChild(this.ship.sprite);
 	this.stage.addChild(this.probeManager.stage);
+	this.stage.addChild(this.particleManager.superStage);
 	this.stage.addChild(this.UI.stage);
 
 	if (DEBUG)	{
@@ -111,9 +125,29 @@ Game.prototype.setStage = function()	{
 	}
 };
 
+Game.prototype.setupParticles = function()	{
+	this.dustEmitterRight = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(canvas.width, 0, 10, canvas.height),
+										  new Vector(-100, -50), new Vector(-10, 50), {pm:this.planetManager});
+	this.dustEmitterTop = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(0, -10, canvas.width, 10),
+										  new Vector(-50, 10), new Vector(50, 100), {pm:this.planetManager});
+	this.dustEmitterLeft = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(-10, 0, 10, canvas.height),
+										  new Vector(10, -50), new Vector(100, 50), {pm:this.planetManager});
+	this.dustEmitterBottom = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(0, canvas.height, canvas.width, 10),
+										  new Vector(-50, -100), new Vector(50, -10), {pm:this.planetManager});
+	this.dustEmitterTrail = this.particleManager.addEmitterByType("dustCloudTrail", new createjs.Rectangle(canvas.width, 0, 10, canvas.height),
+										  new Vector(-100, -100), new Vector(-10, 100));
+	this.dustEmitterTrail.canEmit = false;
+}
+
 Game.prototype.moveToNextLevel = function(delta)	{
 	this.transitionElapsed += delta;
 	this.probeManager.markers = false;
+
+	this.dustEmitterRight.canEmit = false;
+	this.dustEmitterTop.canEmit = false;
+	this.dustEmitterLeft.canEmit = false;
+	this.dustEmitterBottom.canEmit = false;
+	this.dustEmitterTrail.canEmit = true;
 
 	if (this.transitionElapsed >= this.transitionTotalTime)	{
 		this.transitioning = false;
@@ -131,18 +165,26 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.cheated = false;
 		this.probeManager.markers = true;
 
+		this.dustEmitterRight.canEmit = true;
+		this.dustEmitterTop.canEmit = true;
+		this.dustEmitterLeft.canEmit = true;
+		this.dustEmitterBottom.canEmit = true;
+		this.dustEmitterTrail.canEmit = false;
+
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, this.background.x);
 		return;
 	}
 
-	this.background.x += this.bkgMoveRate * delta;
-
+	var globalMove = this.bkgMoveRate * delta;
+	
 	if (this.transitionElapsed >= this.transitionMidTime + this.transitionStartTime)	{
 		// Last Phase
 		this.ship.moveTo(this.nextShipPos);
 		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionMidTime);
-		this.planetManager.stage.x = lerp(canvas.width, 0, mu);
-		this.probeManager.stage.x = lerp(canvas.width, 0, mu);
+		var shiftTo = lerp(canvas.width, 0, mu);
+		var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
+		this.planetManager.stage.x = shiftTo;
+		this.probeManager.stage.x = shiftTo;
 	}	
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
@@ -151,8 +193,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 			this.setupLevel();
 			this.nextLevelMade = true;
 		}
-		//double speed in mid
-		this.background.x += this.bkgMoveRate * delta;
+
+		var diff = this.planetsMoveRate * delta;
 
 		this.probeManager.stage.x += this.planetsMoveRate * delta;
 		var mu = (this.transitionElapsed-this.transitionStartTime) / (this.transitionMidTime);
@@ -160,14 +202,19 @@ Game.prototype.moveToNextLevel = function(delta)	{
 				lerp(this.lastShipPos.x, this.nextShipPos.x, mu),
 				lerp(this.lastShipPos.y, this.nextShipPos.y, mu)
 			));
-
 	}	
 	else 	{
 		// Start Phase
 		this.probeManager.Update(delta, this.planetManager);
-		this.planetManager.stage.x += this.planetsMoveRate * delta;
-		this.probeManager.stage.x += this.planetsMoveRate * delta;
+		var diff = this.planetsMoveRate * delta
+		this.planetManager.stage.x += diff;
+		this.probeManager.stage.x += diff;
 	}
+
+	this.background.x += globalMove;
+
+	this.particleManager.shiftAllParticles(new Vector(diff, 0));
+	this.particleManager.update(delta, this.probeManager.camRect);
 }
 
 Game.prototype.setupLevel = function()	{

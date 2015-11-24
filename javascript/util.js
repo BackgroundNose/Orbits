@@ -22,6 +22,13 @@ function clampMax ( input, max)
 	else { return max; }
 }
 
+function range(start, count) {
+    return Array.apply(0, Array(count))
+                .map(function (element, index) { 
+                         return index + start;  
+                     });
+}
+
 function cosineInterpolate(y1, y2, mu)
 {
    mu2 = (1-Math.cos(mu*Math.PI))/2;
