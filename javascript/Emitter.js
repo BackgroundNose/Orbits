@@ -23,6 +23,7 @@ function Emitter(name, emitBox, stage, particle, emitRate, maxParticles, numToEm
 	this.elapsed = 0;
 	this.dead = false;
 
+
 	this.rangeDependent = false;
 
 	this.name = name;	//Friendly name for the emitter for debugging purposes.
@@ -38,9 +39,9 @@ Emitter.prototype.Update = function(delta)
 	this.lastEmit += delta;
 	this.elapsed  += delta;
 
-	if (this.elapsed >= this.ttl && this.ttl != -1 && !this.dead)		// -1 indicates eternal emitter.
-	{
+	if (this.elapsed >= this.ttl && this.ttl != -1 && !this.dead)	{	// -1 indicates eternal emitter
 		this.dead = true;
+		console.log("killing "+this.name)
 	} 
 	else 
 	{
@@ -147,6 +148,7 @@ Emitter.prototype.emit = function(toEmit)
 		this.particleList[emitIDX].elapsed = 0;
 		this.particleList[emitIDX].randomFrame = this.particlePrototype.randomFrame;
 
+
 		if (this.particleList[emitIDX].randomAnimation)	{
 			this.particleList[emitIDX].setToRandomAnimation();
 		}   else if (this.particleList[emitIDX].randomFrame)	{
@@ -194,6 +196,7 @@ Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, s
 		}	else if (rotMode == "R")	{
 			this.particleList[emitIDX].sprite.rotation = Math.random()*360;
 		}	
+
 		if (this.particleList[emitIDX].randomAnimation)	{
 			this.particleList[emitIDX].setToRandomAnimation();
 		}	else if (randFrame || this.particleList[emitIDX].randomFrame){
@@ -234,6 +237,11 @@ Emitter.prototype.directedBurst = function(toEmit, direction, deviation, speedMi
 		}
 		return list;
 };
+
+Emitter.prototype.moveBoxTo = function(pos)	{
+	this.emitBox.x = pos.x;
+	this.emitBox.y = pos.y;
+}
 
 Emitter.prototype.shiftAllParticles = function(shift)	{
 	for (var i = 0; i < this.particleList.length; i++)	{

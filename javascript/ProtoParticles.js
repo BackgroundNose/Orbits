@@ -8,6 +8,10 @@ function ProtoParticles()
 		this.sprite.x = this.worldPosition.x;
 		this.sprite.y = this.worldPosition.y;
 		this.sprite.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
+
+		if (!collidePointRect(this.worldPosition, this.parentEmitter.args.extCamRect))	{
+			this.dead = true;
+		}
 	};
 
 	var linMoveNoPhysFadeScale = function(delta) {
@@ -70,6 +74,7 @@ function ProtoParticles()
 		this.sprite.x = this.worldPosition.x;
 		this.sprite.y = this.worldPosition.y;
 	}
+
 	var shapeLineBetween = function(delta) {
 		this.worldPosition.x += this.velocity.x * delta;
 		this.worldPosition.y += this.velocity.y * delta;
@@ -122,6 +127,7 @@ function ProtoParticles()
                         "images": [preload.getResult("pwhitePx")]}),
 	                    new Vector(0,0),
 						linMoveNoPhysFade,
+
 						5.0, undefined, false, false);
 	this.dustCloud.startFade = 4;
 	this.dustCloudTrail = new Particle( new createjs.SpriteSheet({
@@ -136,6 +142,7 @@ function ProtoParticles()
                         "animations": {
                             "I":[0]
                         },
+
                         "images": [preload.getResult("pwhitePx")]}),
 	                    new Vector(0,0),
 						shapeLineBetween,
@@ -157,6 +164,7 @@ function ProtoParticles()
 						"images": [preload.getResult("pFlame")]}),
 						new Vector(0,0),
 						linMoveNoPhysFade,
+
 						0.3, undefined, false, false);
 	this.exploFlame.startFade = 0.2;
 	// this.exploCloud = new Particle( new createjs.SpriteSheet({
@@ -180,10 +188,10 @@ function ProtoParticles()
 	this.exploCloud = new Particle( new createjs.SpriteSheet({
 						"frames":
 						{
-							width: 8,
-							height: 8,
-							regX: 4,
-							regY: 4
+							width: 4,
+							height: 4,
+							regX: 2,
+							regY: 2
 						},
 						animations: {
                             a0:[0,9,"end",fr],a1:[10,19,"end",fr],a2:[20,29,"end",fr],a3:[30,39,"end",fr],
@@ -193,6 +201,25 @@ function ProtoParticles()
 						"images": [preload.getResult("pCloud")]}),
 						new Vector(0,0),
 						gravPlanetFade,
-						5, undefined, false, true);
-	this.exploCloud.startFade = 1.75;
+						7.5, undefined, false, true);
+	this.exploCloud.startFade = 5.75;
+	fr = 0.55;
+	this.spark = new Particle( new createjs.SpriteSheet({
+						"frames":
+						{
+							width: 4,
+							height: 4,
+							regX: 2,
+							regY: 2
+						},
+						animations: {
+                            a0:[0,9,"end",fr],a1:[10,19,"end",fr],a2:[20,29,"end",fr],a3:[30,39,"end",fr],
+                            a4:[40,49,"end",fr],a5:[50,59,"end",fr],a6:[60,69,"end",fr],a7:[70,79,"end",fr],
+                            a8:[80,89,"end",fr],a9:[90,99,"end",fr],end:[9]
+						},
+						"images": [preload.getResult("pCloud")]}),
+						new Vector(0,0),
+						gravPlanetFade,
+						0.5, undefined, false, true);
+	this.spark.startFade = 0.25;
 }

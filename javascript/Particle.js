@@ -8,13 +8,16 @@ function Particle(sheet, velocity, moveFunction, ttl, parentEmitter, randFrame, 
 	this.ttl 			= ttl;
 	this.moveFunction 	= moveFunction;
 	this.velocity		= velocity;
+
 	this.force 		    = new Vector(0,0);
+
 	this.offset 		= this.sprite.getBounds();
 	this.offset.x 		= this.offset.width/2;
 	this.offset.y 		= this.offset.height/2;
 	this.startFade 		= 0;
 
 	this.randomFrame = randFrame;
+
 	this.randomAnimation = randomAnimation;
 	if (this.randomAnimation)	{
 		this.setToRandomAnimation();
@@ -39,6 +42,7 @@ Particle.prototype.clone = function()
 	out.sprite = this.sprite.clone();
 	out.worldPosition = this.worldPosition.clone();
 	out.lastPosition = this.worldPosition.clone();
+
 	out.elapsed = 0;
 	out.scale = this.scale;
 	out.rotationRate = this.rotationRate;

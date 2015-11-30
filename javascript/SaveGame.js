@@ -25,6 +25,7 @@ function SaveGame()	{
 	this.resetSave = function()	{
 		console.log("Resetting save file");
 		this.saveFile = new SaveFile();
+		this.updateSave();
 	}
 }
 

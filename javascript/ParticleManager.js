@@ -107,6 +107,7 @@ ParticleManager.prototype.shiftAllParticles = function(shift)	{
 	}
 }
 
+
 ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, vectorHi, additionals)
 {
 	if (emitBox.width === undefined || emitBox.height === undefined)	{
@@ -120,6 +121,7 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 											0.5, 8, 8, vectorLow, vectorHi, -1));
 			this.emitterList[this.emitterList.length-1].particlePrototype.ttl = 10;
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
+			this.emitterList[this.emitterList.length-1].args.extCamRect = new createjs.Rectangle(-10,-10,canvas.width+20,canvas.height+20);
 			this.emitterList[this.emitterList.length-1].setRandomEmit(4.0,5.1);
 			return this.emitterList[this.emitterList.length-1];
 		case "dustCloudTrail":
@@ -141,6 +143,8 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.spark, 
                       35, 64, -1, new Vector(-15,-15), new Vector(25, -95), -1));
 			this.emitterList[this.emitterList.length-1].setRandomEmit(0.15,0.2);
+			this.emitterList[this.emitterList.length-1].canEmit = false;
+			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
 			return this.emitterList[this.emitterList.length-1];
 		case "snot":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.snot, 
@@ -151,11 +155,8 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
                       62, 164, -1, vectorLow, vectorHi, 10));
 			return this.emitterList[this.emitterList.length-1];
 		case "sSmokePuff":
-			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.exploCloud.clone(),
-											1,1024,-1, undefined, undefined, 0));
-			this.emitterList[this.emitterList.length-1].directedBurst(
-				155,additionals.direction,20,20*additionals.force, 175*additionals.force,0.1,0.25,"R",-360,360,true);
-			this.emitterList[this.emitterList.length-1].dead = true;
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.exploCloud,
+											1,256,-1, new Vector(-15,-15), new Vector(25, -95), -1));
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
 			return this.emitterList[this.emitterList.length-1];
 		default:

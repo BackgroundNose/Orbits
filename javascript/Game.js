@@ -6,9 +6,9 @@ function Game()
 
 	this.planetManager = new PlanetManager();
 
-	this.ship = new Ship();
-
 	this.particleManager = new ParticleManager();
+
+	this.ship = new Ship();
 
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
@@ -16,7 +16,8 @@ function Game()
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
 	this.bkgMoveRate = -7;
-	this.planetsMoveRate = -1500;
+
+	this.planetsMoveRate = -4500;
 	this.transitioning = false;
 	this.nextLevelMade = false;
 	this.lastShipPos = new Vector(0,0);
@@ -34,7 +35,7 @@ function Game()
 	this.scanRequired = 0;
 
 	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
-										 this.particleManager);
+										 this.particleManager, this.planetManager);
 
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
@@ -66,6 +67,7 @@ Game.prototype.Update = function(delta) {
 			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
 			this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
 											power, this.planetManager);
+
 			this.UI.updateText( 0, 1, 0, 0);
 			this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
 			this.UI.setRadialBar(toDeg(angleToY(launchVec)));
@@ -75,6 +77,7 @@ Game.prototype.Update = function(delta) {
 		}	else {
 			this.probeManager.stopOrKillProbe();
 		}
+
 		// this.UI.drawPath(out.path, 1);
 	}
 
@@ -196,17 +199,19 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		var diff = this.planetsMoveRate * delta;
 
-		this.probeManager.stage.x += this.planetsMoveRate * delta;
+		this.probeManager.stage.x += diff;
 		var mu = (this.transitionElapsed-this.transitionStartTime) / (this.transitionMidTime);
 		this.ship.moveTo(new Vector(
-				lerp(this.lastShipPos.x, this.nextShipPos.x, mu),
-				lerp(this.lastShipPos.y, this.nextShipPos.y, mu)
+				cosineInterpolate(this.lastShipPos.x, this.nextShipPos.x, mu),
+				cosineInterpolate(this.lastShipPos.y, this.nextShipPos.y, mu)
 			));
 	}	
 	else 	{
 		// Start Phase
 		this.probeManager.Update(delta, this.planetManager);
-		var diff = this.planetsMoveRate * delta
+		var mu = (this.transitionElapsed) / (this.transitionMidTime);
+		var shiftTo = lerp(0, canvas.width, mu);
+		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
 		this.planetManager.stage.x += diff;
 		this.probeManager.stage.x += diff;
 	}

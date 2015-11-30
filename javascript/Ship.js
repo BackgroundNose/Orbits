@@ -20,6 +20,7 @@ function Ship()
 	this.position = new Vector(100,100);
 	this.velocity = new Vector(0,0);
 	this.force = new Vector(0,0);
+
 }
 
 Ship.prototype.Update = function(delta)	{

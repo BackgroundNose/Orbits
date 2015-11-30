@@ -1,6 +1,13 @@
-function ProbeManager(minP, maxP, minProp, particleManager)	
+function ProbeManager(minP, maxP, minProp, particleManager, planetManager)	
 {
-	this.particleManager = particleManager;
+	this.puffEmitter = particleManager.addEmitterByType("sSmokePuff", new createjs.Rectangle(0, 0, 1,1), undefined,
+								undefined, {pm:planetManager});
+	this.thruster = particleManager.addEmitterByType("fuse", new createjs.Rectangle(0, 0, 1,1), undefined,
+								undefined, {pm:planetManager});
+
+	this.planetManagerRef = planetManager;
+
+	this.puffEmitter.canEmit = false;
 	this.stage = new createjs.Container();
 	this.probeList = new Array();
 	this.dbgShape = new createjs.Shape();
@@ -15,10 +22,11 @@ function ProbeManager(minP, maxP, minProp, particleManager)
 
 	this.scansRequired = 0;
 
+	this.smokeParticles = 32;
+
 	this.markers = true;
 
 	this.camRect = new createjs.Rectangle(0,0,canvas.width, canvas.height);	//What the camera covers in world space
-
 }
 
 ProbeManager.prototype.Update = function(delta, planetManager) {
@@ -73,6 +81,7 @@ ProbeManager.prototype.clearStuff = function()	{
 	this.probeList.length = 0;
 }
 
+
 ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
 	if ( this.probeList.length > 0)	{
 		this.refireProbe(angle, power);
@@ -84,10 +93,13 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
 	this.pushProbe(this.probeList.length-1, angle, power);	
 	this.stage.addChild(probe.sprite);
 
-	smokeVec = new Vector(0,-1);
+	var smokeVec = new Vector(0,-1);
+
 	smokeVec.rotate(toRad(angle+180));
-	this.particleManager.addEmitterByType("sSmokePuff", new createjs.Rectangle(position.x, position.y, 1,1), undefined,
-										  undefined, {direction:smokeVec, pm:pm, force:power});
+
+	this.puffEmitter.moveBoxTo(position);
+	this.puffEmitter.directedBurst(
+				this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
 
 	if (this.scansRequired > 0)	{
 		this.stage.addChild(probe.scannedText);
@@ -99,11 +111,19 @@ ProbeManager.prototype.refireProbe = function(angle, power)	{
 		console.log("Trying to refire non existant probe!");
 		return;
 	}	
-
+	this.thruster.canEmit = false;
 	if (!intersectRect(this.camRect, this.probeList[0].rect))	{
 		this.probeList[0].kill = true;
 		this.probeList[0].stopAndWait();
 	}	else	{
+
+		var smokeVec = new Vector(0,-1);
+
+		smokeVec.rotate(toRad(angle+180));
+
+		this.puffEmitter.moveBoxTo(this.probeList[0].position);
+		this.puffEmitter.directedBurst(
+				power*this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
 		this.pushProbe(0, angle, power);
 	}
 	return;
@@ -118,6 +138,25 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 		this.probeList[0].kill = true;
 		return;
 	}
+
+	var vec = new Vector(0,0);
+	this.planetManagerRef.getTotalAttractionVector(this.probeList[0].position, vec);
+	vec.normalise();
+
+	this.puffEmitter.moveBoxTo(this.probeList[0].position);
+	this.puffEmitter.directedBurst(
+				Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),20,
+				0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
+				0.5,1.0,"N",-0,0,true);
+	
+	this.thruster.moveBoxTo(this.probeList[0].position);
+	vec.rotate(toRad(-5));
+	this.thruster.emitVelocityLow = vec.outScalarMult(5);
+	vec.rotate(toRad(10));
+	this.thruster.emitVelocityHigh = vec.outScalarMult(100);
+	
+	this.thruster.canEmit = true;
+
 	this.probeList[0].stopAndWait();
 }
 
