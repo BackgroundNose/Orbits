@@ -23,6 +23,9 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager)
 	this.powerQuant = 1/100;
 
 	this.scansRequired = 0;
+	this.piecesPerScan = 32;
+	this.piecesRequired = this.scansRequired*this.piecesPerScan;
+	this.piecesCollected = 0;
 
 	this.smokeParticles = 32;
 
@@ -31,7 +34,7 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager)
 	this.camRect = new createjs.Rectangle(0,0,canvas.width, canvas.height);	//What the camera covers in world space
 }
 
-ProbeManager.prototype.Update = function(delta, planetManager) {
+ProbeManager.prototype.Update = function(delta, planetManager, UI) {
 	if (DEBUG)	{
 		this.dbgShape.graphics.clear();
 	}
@@ -50,12 +53,14 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
 		}
-		var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius, true);
-		for (var s = 0; s < scanReturn.length; s++)	{
-			if (!contains(this.probeList[i].scannedList, scanReturn[s]))	{
-				this.scanBurst.moveBoxTo(this.probeList[i].position);
-				this.scanBurst.circleBurst(32, 160, 160, 1.0, 1.0, "A", 0, 0, true);
-				this.probeList[i].scannedList.push(scanReturn[s]);
+		if (planetManager.levelType == "scan")	{
+			var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius, true);
+			for (var s = 0; s < scanReturn.length; s++)	{
+				if (!contains(this.probeList[i].scannedList, scanReturn[s]))	{
+					this.scanBurst.moveBoxTo(this.probeList[i].position);
+					this.scanBurst.circleBurst(this.piecesPerScan, 160, 160, 1.0, 1.0, "A", 0, 0, true);
+					this.probeList[i].scannedList.push(scanReturn[s]);
+				}
 			}
 		}
 		
@@ -70,8 +75,11 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 	for (var i = 0; i < this.probeList.length; i++)	{
 		if (this.probeList[i].kill)	{
 			this.stage.removeChild(this.probeList[i].sprite);
-			this.stage.removeChild(this.probeList[i].scannedText);
 			this.probeList.splice(i,1);
+			if (this.piecesCollected < this.piecesRequired) {
+				UI.startBoxDrop();
+			}
+			this.piecesCollected = 0;
 			i--;
 		}
 	}
@@ -80,7 +88,7 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 ProbeManager.prototype.clearStuff = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
 		this.stage.removeChild(this.probeList[i].sprite);
-		this.stage.removeChild(this.probeList[i].scannedText);
+		// this.stage.removeChild(this.probeList[i].scannedText);
 	}
 	this.probeList.length = 0;
 }
@@ -105,9 +113,6 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
 	this.puffEmitter.directedBurst(
 				this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
 
-	if (this.scansRequired > 0)	{
-		this.stage.addChild(probe.scannedText);
-	}
 };
 
 ProbeManager.prototype.refireProbe = function(angle, power)	{
@@ -177,11 +182,17 @@ ProbeManager.prototype.pushProbe = function(idx, angle, power)	{
 
 ProbeManager.prototype.checkScans = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
-		if (this.probeList[i].scannedList.length >= this.scansRequired)	{
+		if (this.piecesCollected >= this.piecesRequired)	{
 			return true;
 		}
 	}
 	return false;
+}
+
+ProbeManager.prototype.setScanRequired = function(required)	{
+	this.scansRequired = required;
+	this.piecesRequired = this.scansRequired*this.piecesPerScan;
+	this.piecesCollected = 0;
 }
 
 ProbeManager.prototype.quantizeLaunchAngle = function(ang)	{

@@ -121,6 +121,7 @@ function ProtoParticles()
 					this.worldPosition.y = probe.position.y;
 					this.phase = 0;
 					this.dead = true;
+					this.parentEmitter.args[1].piecesCollected += 1;
 				}	else 	{
 					this.velocity.x = probe.position.x - this.worldPosition.x;
 					this.velocity.y = probe.position.y - this.worldPosition.y;

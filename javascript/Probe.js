@@ -36,7 +36,7 @@ function Probe (needScanned)
 
 	this.path = new Array();
 
-	this.scannedText = new createjs.Text("0", "bold 32px Courier", "#FFF")
+	// this.scannedText = new createjs.Text("0", "bold 32px Courier", "#FFF")
 }
 
 Probe.prototype.Update = function(delta, camRect, markers)	{
@@ -81,9 +81,9 @@ Probe.prototype.Update = function(delta, camRect, markers)	{
 
 	this.force.x = this.force.y = 0;
 
-	this.scannedText.x = this.position.x-10;
-	this.scannedText.y = this.position.y-15;
-	this.scannedText.text = (this.needScanned - this.scannedList.length).toString();
+	// this.scannedText.x = this.position.x-10;
+	// this.scannedText.y = this.position.y-15;
+	// this.scannedText.text = (this.needScanned - this.scannedList.length).toString();
 	
 }
 

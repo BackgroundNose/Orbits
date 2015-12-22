@@ -41,6 +41,12 @@ function sineInterpolate(y1, y2, mu)
    return(y1*(1-mu2)+y2*mu2);
 }
 
+function easeInBack (x, t, b, c, d, s) {
+// t: current time, b: begInnIng value, c: change In value, d: duration
+	if (s == undefined) s = 1.70158;
+	return c*(t/=d)*t*((s+1)*t - s) + b;
+}
+
 function gramSchmidt(inVec, mag)		{
 	if (mag == 0 || (inVec.y == 0 && inVec.x == 0))	{
 		return new Vector(0,0);

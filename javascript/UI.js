@@ -6,43 +6,11 @@ function UI(min, max)
 	this.pathShape = new createjs.Shape();
 	this.pathShape.cache(0,0,canvas.width, canvas.height);
 
-	// this.powerStage = new createjs.Container();
-	// this.powerStage.x = canvas.width - 106;
-	// this.powerStage.y = 3;
-	// this.powerBars = new Array();
-	// this.loadSprites();
-	// this.activatedBar = undefined;
-	// this.cheatBar = undefined;
-
-	// this.cheatDown = false;
-	// this.cheatRect = this.cheatButton.getBounds();
-	// this.cheatRect.x += this.cheatButton.x;
-	// this.cheatRect.y += this.cheatButton.y;
-
-	// this.radialBar = new createjs.Shape();
-	// this.radialRad = 45;
-
-	//this.stage.addChild(this.powerStage);
-	//this.stage.addChild(this.radial);
-	//this.stage.addChild(this.radialBar);
-	//this.stage.addChild(this.cheatButton);
-
 	this.stage.addChild(this.targeter);
 	this.stage.addChild(this.pathShape);
 
 	this.minSwipeLength = min;
 	this.maxSwipeLength = max;
-
-	// this.angText = new createjs.Text("000", "bold 16px Courier", "#2F2");
-	// this.forceText = new createjs.Text("000", "bold 16px Courier", "#2F2");
-
-	// this.angText.x = canvas.width - 100;
-	// this.angText.y = this.radial.y + 50 + 5;
-	// this.stage.addChild(this.angText);
-
-	// this.forceText.x = canvas.width - 45;
-	// this.forceText.y = this.radial.y + 50 + 5;
-	// this.stage.addChild(this.forceText);
 
 	this.launched = 0;
 	this.passed = 0;
@@ -66,10 +34,48 @@ function UI(min, max)
 	this.passedText.y = 3;
 	this.stage.addChild(this.passedText);
 
-	this.skipText = new createjs.Text("0", "bold 36px Courier", "#D33");
-	this.skipText.x = this.passedText.x + this.passedText.getBounds().width  + this.textSep;
-	this.skipText.y = 3;
-	this.stage.addChild(this.skipText);
+	this.scanBarWidth = 300;
+	this.scanBarHeight = 15;
+	this.scanBarYOffset = 30;
+	this.scanBarBackingEdge = 4;
+	this.scanBarProp = -1.0;
+	this.scanBar = new createjs.Shape();
+	this.scanBar.x = canvas.width/2.0 - this.scanBarWidth/2.0;
+	this.scanBar.y = canvas.height - (this.scanBarHeight + this.scanBarYOffset);
+	this.scanBar.cache(-(this.scanBarBackingEdge+5),-(this.scanBarBackingEdge+5),
+		this.scanBarWidth+2*this.scanBarBackingEdge+10,this.scanBarHeight+2*this.scanBarBackingEdge+10);
+	this.stage.addChild(this.scanBar);
+	this.updateScanBar(0.0);
+
+	this.fallBox = new createjs.Shape()
+	this.fallBox.x = this.scanBar.x;
+	this.fallBox.cache(0,0, this.scanBarWidth, this.scanBarHeight);
+	this.stage.addChild(this.fallBox);
+	this.fallBox.alpha = 0.0;
+	this.droppingBox = false;
+	this.droppingElapsed = 0;
+	this.droppingTTL = 0.35;
+}
+
+UI.prototype.startBoxDrop = function()	{
+	this.droppingElapsed = 0;
+
+	this.fallBox.y = this.scanBar.y;
+	this.fallBox.alpha = 1.0;
+
+	// Draw it in the same way as the real bar.
+	this.fallBox.graphics.clear();
+	this.fallBox.graphics.f("#9F9");
+	this.fallBox.graphics.r(0, 0, this.scanBarWidth*this.scanBarProp, 4);
+
+	this.fallBox.graphics.f("#0F0");
+	this.fallBox.graphics.r(0, 4, this.scanBarWidth*this.scanBarProp, this.scanBarHeight-9);
+
+	this.fallBox.graphics.f("#090");
+	this.fallBox.graphics.r(0, this.scanBarHeight-5, this.scanBarWidth*this.scanBarProp, 6);
+	this.fallBox.updateCache();
+
+	this.droppingBox = true;
 }
 
 UI.prototype.updateText = function(launch, here, pass, skip)	{
@@ -86,17 +92,14 @@ UI.prototype.updateText = function(launch, here, pass, skip)	{
 	this.launchedText.text = this.launched.toString();
 	this.probesHereText.text = "+"+this.probesHere.toString();
 	this.passedText.text = this.passed.toString();
-	this.skipText.text = this.skipped.toString();
 
 	var startX = canvas.width/2.0 - (this.launchedText.getBounds().width + 
 									this.probesHereText.getBounds().width + 
-									this.passedText.getBounds().width + 
-									this.skipText.getBounds().width)/2.0;
+									this.passedText.getBounds().width)/2.0; 
 
 	this.launchedText.x = startX;
 	this.probesHereText.x = this.launchedText.x + this.launchedText.getBounds().width;
 	this.passedText.x = this.probesHereText.x + this.probesHereText.getBounds().width + this.textSep;
-	this.skipText.x = this.passedText.x + this.passedText.getBounds().width  + this.textSep;
 }
 
 UI.prototype.applyProbesHere = function()	{
@@ -108,12 +111,6 @@ UI.prototype.applyProbesHere = function()	{
 UI.prototype.Update = function(delta, swipe, probeMan) {
 	this.targeter.graphics.clear();
 
-	// if ((!mouse.down && mouse.last) && collidePointRect(mouse, this.cheatRect))	{
-	// 	this.cheatDown = true;
-	// }	else	{
-	// 	this.cheatDown = false;
-	// }
-
 	if (swipe.swiping == true && swipe.swipeLength >= this.minSwipeLength)	{
 		var len = probeMan.quantizeLaunchPower(Math.min(swipe.swipeLength,this.maxSwipeLength)/this.maxSwipeLength);
 		len *= this.maxSwipeLength;	
@@ -122,7 +119,47 @@ UI.prototype.Update = function(delta, swipe, probeMan) {
 		dVec.scalarMult(len);
 		this.drawTargeterArrow(swipe.start.x, swipe.start.y, swipe.start.x+dVec.x, swipe.start.y+dVec.y);
 	}
+
+	if (this.droppingBox)	{
+		this.droppingElapsed += delta;
+
+		if (this.droppingElapsed > this.droppingTTL)	{
+			this.droppingBox = false;
+			this.fallBox.alpha = 0.0;
+		}	else 	{
+			this.fallBox.y = easeInBack(0, this.droppingElapsed, 
+										this.fallBox.y, 10, this.droppingTTL,1.50)
+			this.fallBox.alpha = lerp(1.0, 0, this.droppingElapsed/this.droppingTTL);
+		}
+	}
 };
+
+UI.prototype.updateScanBar = function(prop)	{
+	if (prop == this.scanBarProp)	{
+		return;
+	}
+	this.scanBarProp = prop;
+	this.scanBar.graphics.clear();
+
+	// Bar Back drop
+	this.scanBar.graphics.f("#333")
+	this.scanBar.graphics.rr(-this.scanBarBackingEdge+2,-this.scanBarBackingEdge+2,
+		this.scanBarWidth+2*this.scanBarBackingEdge,this.scanBarHeight+2*this.scanBarBackingEdge, 4)
+	this.scanBar.graphics.f("#555")
+	this.scanBar.graphics.rr(-this.scanBarBackingEdge,-this.scanBarBackingEdge,
+		this.scanBarWidth+2*this.scanBarBackingEdge,this.scanBarHeight+2*this.scanBarBackingEdge, 4)
+
+	// Bar itself
+	this.scanBar.graphics.f("#9F9");
+	this.scanBar.graphics.r(0, 0, this.scanBarWidth*prop, 4);
+
+	this.scanBar.graphics.f("#0F0");
+	this.scanBar.graphics.r(0, 4, this.scanBarWidth*prop, this.scanBarHeight-9);
+
+	this.scanBar.graphics.f("#090");
+	this.scanBar.graphics.r(0, this.scanBarHeight-5, this.scanBarWidth*prop, 6);
+	this.scanBar.updateCache();
+}
 
 UI.prototype.updateScore = function(launch, pass, skip)	{
 	this.launched += launch;
@@ -149,23 +186,8 @@ UI.prototype.drawTargeterArrow = function(startX, startY, endX, endY)	{
 }
 
 UI.prototype.clearStuff = function()	{
-	// if (this.cheatBar !== undefined)	{
-	// 	this.powerBars[this.cheatBar].gotoAndStop("ina");
-	// }
-
-	// if (this.activatedBar !== undefined)	{
-	// 	this.powerBars[this.activatedBar].gotoAndStop("ina");
-	// }
-
-	// this.radialBar.graphics.clear();
-
-	// this.cheatBar = undefined;
-
 	this.pathShape.graphics.clear();
 	this.pathShape.updateCache();
-
-	// this.angText.text = "000";
-	// this.forceText.text = "000";
 }
 
 UI.prototype.drawPath = function(path, decimate)	{

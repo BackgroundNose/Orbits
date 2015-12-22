@@ -12,7 +12,7 @@ function Game()
 
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
-	this.transitionEndTime = 1;
+	this.transitionEndTime = 0.75;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
 	this.bkgMoveRate = -7;
@@ -31,8 +31,6 @@ function Game()
 	this.minLaunchProp = this.minLaunchLength / this.maxLaunchLength;
 	this.minLaunchPower = this.minLaunchProp*this.maxLaunchPower;
 
-	this.scanRequired = 0;
-
 	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
 										 this.particleManager, this.planetManager);
 
@@ -40,8 +38,12 @@ function Game()
 	this.swipe = new Swipe();
 
 	// Initial level setup
-
 	this.setupLevel();
+	if (this.planetManager.levelType == "scan")	{
+		this.UI.scanBar.alpha = 1.0;
+	}	else   {
+		this.UI.scanBar.alpha = 0.0;
+	}
 
 	this.dustEmitter = undefined;
 
@@ -68,8 +70,6 @@ Game.prototype.Update = function(delta) {
 											power, this.planetManager);
 
 			this.UI.updateText( 0, 1, 0, 0);
-			// this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
-			// this.UI.setRadialBar(toDeg(angleToY(launchVec)));
 			var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
 											this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
 											2,300, true);
@@ -81,16 +81,9 @@ Game.prototype.Update = function(delta) {
 	}
 
 	this.UI.Update(delta, this.swipe, this.probeManager);
+	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
-	// if ( this.UI.cheatDown )	{
-	// 	this.probeManager.spawnProbe(this.ship.worldPosition, this.planetManager.solutionAngle, 
-	// 								this.planetManager.solutionForce, this.planetManager);
-	// 	// this.UI.setCheatBar(this.planetManager.solutionForce);
-	// 	// this.UI.setRadialBarCheat(this.planetManager.solutionAngle);
-	// 	this.cheated = true;
-	// }
-
-	this.probeManager.Update(delta, this.planetManager);
+	this.probeManager.Update(delta, this.planetManager, this.UI);
 	this.planetManager.Update(delta);
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
@@ -173,6 +166,10 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.dustEmitterBottom.canEmit = true;
 		this.dustEmitterTrail.canEmit = false;
 
+		this.UI.scanBar.aplha = 1.0;
+
+		this.probeManager.scanBurst.canEmit = true;
+
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, this.background.x);
 		return;
 	}
@@ -182,20 +179,28 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	if (this.transitionElapsed >= this.transitionMidTime + this.transitionStartTime)	{
 		// Last Phase
 		this.ship.moveTo(this.nextShipPos);
-		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionMidTime);
+		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionEndTime);
 		var shiftTo = lerp(canvas.width, 0, mu);
-		// var diff = shiftTo - this.planetManager.stage.x;
-		var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
+		var diff = shiftTo - this.planetManager.stage.x;
+		// var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
 		this.planetManager.stage.x = shiftTo;
 		this.probeManager.stage.x = shiftTo;
+
+		if (this.planetManager.levelType == "scan")	{
+			this.UI.scanBar.alpha = lerp(0, 1.0, mu);
+		}
 	}	
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
 			this.probeManager.scanBurst.killAll();
+			this.probeManager.puffEmitter.killAll();
+			this.probeManager.thruster.killAll();
+			this.probeManager.thruster.canEmit = false;
 			this.planetManager.stage.x = canvas.width;
 			this.setupLevel();
 			this.nextLevelMade = true;
+			this.probeManager.scanBurst.canEmit = false;
 		}
 
 		var diff = this.planetsMoveRate * delta;
@@ -209,10 +214,11 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	}	
 	else 	{
 		// Start Phase
-		this.probeManager.Update(delta, this.planetManager);
+		this.probeManager.Update(delta, this.planetManager, this.UI);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
+		this.UI.scanBar.alpha = lerp(this.UI.scanBar.alpha, 0, mu);
 		this.planetManager.stage.x += diff;
 		this.probeManager.stage.x += diff;
 	}
@@ -220,6 +226,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	this.background.x += globalMove;
 
 	this.particleManager.shiftAllParticles(new Vector(diff, 0));
+	this.probeManager.thruster.moveBy({x:diff, y:0});
 	this.particleManager.update(delta, this.probeManager.camRect);
 }
 
@@ -248,9 +255,8 @@ Game.prototype.setupLevel = function()	{
 					this.UI.drawPath(result.path);
 				}
 				this.planetManager.levelType = "scan";
-				this.scanRequired = toScan;
 				this.planetManager.addTargetGraphics();
-				this.probeManager.scansRequired = toScan;
+				this.probeManager.setScanRequired(toScan);
 			}
 			
 		}	else 	{
@@ -258,7 +264,7 @@ Game.prototype.setupLevel = function()	{
 	 		result = this.planetManager.makeMine(this.nextShipPos, 2, 
 	 							3, 10, this.probeManager);
 			this.planetManager.levelType = "mine";
-			this.probeManager.scansRequired = 0;
+			this.probeManager.setScanRequired(0);
 		}
 							
 		console.timeEnd("MakeLevel");

@@ -245,6 +245,11 @@ Emitter.prototype.moveBoxTo = function(pos)	{
 	this.emitBox.y = pos.y;
 }
 
+Emitter.prototype.moveBy = function(shift)	{
+	this.emitBox.x += shift.x;
+	this.emitBox.y += shift.y;
+}
+
 Emitter.prototype.shiftAllParticles = function(shift)	{
 	for (var i = 0; i < this.particleList.length; i++)	{
 		this.particleList[i].moveBy(shift);
