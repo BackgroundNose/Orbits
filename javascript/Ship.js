@@ -17,7 +17,7 @@ function Ship()
 	this.sprite.gotoAndStop("player");
 	this.sprite.rotation = 90;
 
-	this.position = new Vector(100,100);
+	this.worldPosition = new Vector(100,100);
 	this.velocity = new Vector(0,0);
 	this.force = new Vector(0,0);
 
@@ -27,17 +27,17 @@ Ship.prototype.Update = function(delta)	{
 	this.velocity.x += this.force.x*delta;
 	this.velocity.y += this.force.y*delta;
 
-	this.position.x += this.velocity.x*delta;
-	this.position.y += this.velocity.y*delta;
+	this.worldPosition.x += this.velocity.x*delta;
+	this.worldPosition.y += this.velocity.y*delta;
 
-	this.sprite.x = this.position.x;
-	this.sprite.y = this.position.y;
+	this.sprite.x = this.worldPosition.x;
+	this.sprite.y = this.worldPosition.y;
 
 	this.force.x = this.force.y = 0;
 }
 
 Ship.prototype.makeLaunchForce = function()	{
-	return this.position.seperation(mouse).outScalarMult(0.5);
+	return this.worldPosition.seperation(mouse).outScalarMult(0.5);
 }
 
 Ship.prototype.addForce = function(force)	{
@@ -46,6 +46,6 @@ Ship.prototype.addForce = function(force)	{
 }
 
 Ship.prototype.moveTo = function(pos) {
-	this.sprite.x = this.position.x = pos.x;
-	this.sprite.y = this.position.y = pos.y;
+	this.sprite.x = this.worldPosition.x = pos.x;
+	this.sprite.y = this.worldPosition.y = pos.y;
 };

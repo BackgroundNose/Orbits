@@ -4,9 +4,9 @@ function Game()
 
 	this.background = new createjs.Bitmap(preload.getResult("background"));
 
-	this.planetManager = new PlanetManager();
-
 	this.particleManager = new ParticleManager();
+
+	this.planetManager = new PlanetManager(this.particleManager);
 
 	this.ship = new Ship();
 
@@ -31,7 +31,6 @@ function Game()
 	this.minLaunchProp = this.minLaunchLength / this.maxLaunchLength;
 	this.minLaunchPower = this.minLaunchProp*this.maxLaunchPower;
 
-	this.levelType = "scan";
 	this.scanRequired = 0;
 
 	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
@@ -65,12 +64,12 @@ Game.prototype.Update = function(delta) {
 		if (this.swipe.swipeLength >= this.minLaunchLength)	{
 			var launchVec = this.swipe.swipeVec;
 			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
-			this.probeManager.spawnProbe(this.ship.position, toDeg(angleToY(launchVec)), 
+			this.probeManager.spawnProbe(this.ship.worldPosition, toDeg(angleToY(launchVec)), 
 											power, this.planetManager);
 
 			this.UI.updateText( 0, 1, 0, 0);
-			this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
-			this.UI.setRadialBar(toDeg(angleToY(launchVec)));
+			// this.UI.setActiveBar(this.probeManager.quantizeLaunchPower(power));
+			// this.UI.setRadialBar(toDeg(angleToY(launchVec)));
 			var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
 											this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
 											2,300, true);
@@ -83,21 +82,21 @@ Game.prototype.Update = function(delta) {
 
 	this.UI.Update(delta, this.swipe, this.probeManager);
 
-	if ( this.UI.cheatDown )	{
-		this.probeManager.spawnProbe(this.ship.position, this.planetManager.solutionAngle, 
-									this.planetManager.solutionForce, this.planetManager);
-		this.UI.setCheatBar(this.planetManager.solutionForce);
-		this.UI.setRadialBarCheat(this.planetManager.solutionAngle);
-		this.cheated = true;
-	}
+	// if ( this.UI.cheatDown )	{
+	// 	this.probeManager.spawnProbe(this.ship.worldPosition, this.planetManager.solutionAngle, 
+	// 								this.planetManager.solutionForce, this.planetManager);
+	// 	// this.UI.setCheatBar(this.planetManager.solutionForce);
+	// 	// this.UI.setRadialBarCheat(this.planetManager.solutionAngle);
+	// 	this.cheated = true;
+	// }
 
 	this.probeManager.Update(delta, this.planetManager);
 	this.planetManager.Update(delta);
-	if (this.levelType == "mine")	{
+	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
 			this.transitioning = true;
 		}
-	}	else if (this.levelType == "scan")	{
+	}	else if (this.planetManager.levelType == "scan")	{
 		if (this.probeManager.checkScans())	{
 			this.transitioning = true;
 		}
@@ -185,6 +184,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.moveTo(this.nextShipPos);
 		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionMidTime);
 		var shiftTo = lerp(canvas.width, 0, mu);
+		// var diff = shiftTo - this.planetManager.stage.x;
 		var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
 		this.planetManager.stage.x = shiftTo;
 		this.probeManager.stage.x = shiftTo;
@@ -192,6 +192,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
+			this.probeManager.scanBurst.killAll();
 			this.planetManager.stage.x = canvas.width;
 			this.setupLevel();
 			this.nextLevelMade = true;
@@ -233,7 +234,7 @@ Game.prototype.setupLevel = function()	{
 	while (result === undefined && i < 5)	{
 		i++;
 		this.planetManager.spawnPlanets(2+Math.floor(Math.random()*6));
-		this.lastShipPos = this.ship.position.clone();
+		this.lastShipPos = this.ship.worldPosition.clone();
 		this.nextShipPos = this.planetManager.getShipSpawn(10);
 		console.time("MakeLevel");
 		
@@ -246,7 +247,7 @@ Game.prototype.setupLevel = function()	{
 				if (DEBUG)	{
 					this.UI.drawPath(result.path);
 				}
-				this.levelType = "scan";
+				this.planetManager.levelType = "scan";
 				this.scanRequired = toScan;
 				this.planetManager.addTargetGraphics();
 				this.probeManager.scansRequired = toScan;
@@ -256,7 +257,7 @@ Game.prototype.setupLevel = function()	{
 			console.log("Mine Path")
 	 		result = this.planetManager.makeMine(this.nextShipPos, 2, 
 	 							3, 10, this.probeManager);
-			this.levelType = "mine";
+			this.planetManager.levelType = "mine";
 			this.probeManager.scansRequired = 0;
 		}
 							

@@ -16,6 +16,8 @@ function Particle(sheet, velocity, moveFunction, ttl, parentEmitter, randFrame, 
 	this.offset.y 		= this.offset.height/2;
 	this.startFade 		= 0;
 
+	this.phase 			= 0;	// Allows the particle to move through behaviours
+
 	this.randomFrame = randFrame;
 
 	this.randomAnimation = randomAnimation;

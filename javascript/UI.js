@@ -6,26 +6,26 @@ function UI(min, max)
 	this.pathShape = new createjs.Shape();
 	this.pathShape.cache(0,0,canvas.width, canvas.height);
 
-	this.powerStage = new createjs.Container();
-	this.powerStage.x = canvas.width - 106;
-	this.powerStage.y = 3;
-	this.powerBars = new Array();
-	this.loadSprites();
-	this.activatedBar = undefined;
-	this.cheatBar = undefined;
+	// this.powerStage = new createjs.Container();
+	// this.powerStage.x = canvas.width - 106;
+	// this.powerStage.y = 3;
+	// this.powerBars = new Array();
+	// this.loadSprites();
+	// this.activatedBar = undefined;
+	// this.cheatBar = undefined;
 
-	this.cheatDown = false;
-	this.cheatRect = this.cheatButton.getBounds();
-	this.cheatRect.x += this.cheatButton.x;
-	this.cheatRect.y += this.cheatButton.y;
+	// this.cheatDown = false;
+	// this.cheatRect = this.cheatButton.getBounds();
+	// this.cheatRect.x += this.cheatButton.x;
+	// this.cheatRect.y += this.cheatButton.y;
 
-	this.radialBar = new createjs.Shape();
-	this.radialRad = 45;
+	// this.radialBar = new createjs.Shape();
+	// this.radialRad = 45;
 
-	this.stage.addChild(this.powerStage);
-	this.stage.addChild(this.radial);
-	this.stage.addChild(this.radialBar);
-	this.stage.addChild(this.cheatButton);
+	//this.stage.addChild(this.powerStage);
+	//this.stage.addChild(this.radial);
+	//this.stage.addChild(this.radialBar);
+	//this.stage.addChild(this.cheatButton);
 
 	this.stage.addChild(this.targeter);
 	this.stage.addChild(this.pathShape);
@@ -33,16 +33,16 @@ function UI(min, max)
 	this.minSwipeLength = min;
 	this.maxSwipeLength = max;
 
-	this.angText = new createjs.Text("000", "bold 16px Courier", "#2F2");
-	this.forceText = new createjs.Text("000", "bold 16px Courier", "#2F2");
+	// this.angText = new createjs.Text("000", "bold 16px Courier", "#2F2");
+	// this.forceText = new createjs.Text("000", "bold 16px Courier", "#2F2");
 
-	this.angText.x = canvas.width - 100;
-	this.angText.y = this.radial.y + 50 + 5;
-	this.stage.addChild(this.angText);
+	// this.angText.x = canvas.width - 100;
+	// this.angText.y = this.radial.y + 50 + 5;
+	// this.stage.addChild(this.angText);
 
-	this.forceText.x = canvas.width - 45;
-	this.forceText.y = this.radial.y + 50 + 5;
-	this.stage.addChild(this.forceText);
+	// this.forceText.x = canvas.width - 45;
+	// this.forceText.y = this.radial.y + 50 + 5;
+	// this.stage.addChild(this.forceText);
 
 	this.launched = 0;
 	this.passed = 0;
@@ -108,11 +108,11 @@ UI.prototype.applyProbesHere = function()	{
 UI.prototype.Update = function(delta, swipe, probeMan) {
 	this.targeter.graphics.clear();
 
-	if ((!mouse.down && mouse.last) && collidePointRect(mouse, this.cheatRect))	{
-		this.cheatDown = true;
-	}	else	{
-		this.cheatDown = false;
-	}
+	// if ((!mouse.down && mouse.last) && collidePointRect(mouse, this.cheatRect))	{
+	// 	this.cheatDown = true;
+	// }	else	{
+	// 	this.cheatDown = false;
+	// }
 
 	if (swipe.swiping == true && swipe.swipeLength >= this.minSwipeLength)	{
 		var len = probeMan.quantizeLaunchPower(Math.min(swipe.swipeLength,this.maxSwipeLength)/this.maxSwipeLength);
@@ -149,23 +149,23 @@ UI.prototype.drawTargeterArrow = function(startX, startY, endX, endY)	{
 }
 
 UI.prototype.clearStuff = function()	{
-	if (this.cheatBar !== undefined)	{
-		this.powerBars[this.cheatBar].gotoAndStop("ina");
-	}
+	// if (this.cheatBar !== undefined)	{
+	// 	this.powerBars[this.cheatBar].gotoAndStop("ina");
+	// }
 
-	if (this.activatedBar !== undefined)	{
-		this.powerBars[this.activatedBar].gotoAndStop("ina");
-	}
+	// if (this.activatedBar !== undefined)	{
+	// 	this.powerBars[this.activatedBar].gotoAndStop("ina");
+	// }
 
-	this.radialBar.graphics.clear();
+	// this.radialBar.graphics.clear();
 
-	this.cheatBar = undefined;
+	// this.cheatBar = undefined;
 
 	this.pathShape.graphics.clear();
 	this.pathShape.updateCache();
 
-	this.angText.text = "000";
-	this.forceText.text = "000";
+	// this.angText.text = "000";
+	// this.forceText.text = "000";
 }
 
 UI.prototype.drawPath = function(path, decimate)	{

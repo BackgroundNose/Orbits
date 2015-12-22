@@ -67,6 +67,7 @@ Emitter.prototype.Update = function(delta)
 			if (this.particleList[i].elapsed > this.particleList[i].ttl)
 			{
 				this.particleList[i].dead = true;
+				this.particleList[i].phase = 0;
 				if (this.particleList.onStage)
 				{
 					this.stage.removeChild(this.particleList[i].sprite);
@@ -147,6 +148,7 @@ Emitter.prototype.emit = function(toEmit)
 		this.particleList[emitIDX].moveFunction = this.particlePrototype.moveFunction;
 		this.particleList[emitIDX].elapsed = 0;
 		this.particleList[emitIDX].randomFrame = this.particlePrototype.randomFrame;
+		this.particleList[emitIDX].phase = 0; 
 
 
 		if (this.particleList[emitIDX].randomAnimation)	{

@@ -4,6 +4,8 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager)
 								undefined, {pm:planetManager});
 	this.thruster = particleManager.addEmitterByType("fuse", new createjs.Rectangle(0, 0, 1,1), undefined,
 								undefined, {pm:planetManager});
+	this.scanBurst = particleManager.addEmitterByType("scan", new createjs.Rectangle(0, 0, 1, 1),
+		new Vector(0,0), new Vector(0,0), {pm:planetManager, probes:this})
 
 	this.planetManagerRef = planetManager;
 
@@ -48,9 +50,11 @@ ProbeManager.prototype.Update = function(delta, planetManager) {
 		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
 			this.probeList[i].kill = true;
 		}
-		var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius);
+		var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius, true);
 		for (var s = 0; s < scanReturn.length; s++)	{
 			if (!contains(this.probeList[i].scannedList, scanReturn[s]))	{
+				this.scanBurst.moveBoxTo(this.probeList[i].position);
+				this.scanBurst.circleBurst(32, 160, 160, 1.0, 1.0, "A", 0, 0, true);
 				this.probeList[i].scannedList.push(scanReturn[s]);
 			}
 		}
@@ -95,7 +99,7 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
 
 	var smokeVec = new Vector(0,-1);
 
-	smokeVec.rotate(toRad(angle+180));
+	smokeVec.rotate(toRad(angle));
 
 	this.puffEmitter.moveBoxTo(position);
 	this.puffEmitter.directedBurst(

@@ -159,6 +159,12 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 											1,256,-1, new Vector(-15,-15), new Vector(25, -95), -1));
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
 			return this.emitterList[this.emitterList.length-1];
+		case "scan":
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.scan,
+											0,1024,-1, new Vector(-15,-15), new Vector(25, -95), -1));
+			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
+			this.emitterList[this.emitterList.length-1].args.push(additionals.probes);
+			return this.emitterList[this.emitterList.length-1];
 		default:
 			console.log("Unknown particle type!: ",type);
 			return undefined;

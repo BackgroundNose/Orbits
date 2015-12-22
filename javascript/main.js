@@ -73,7 +73,8 @@ function init()  {
 		{id:"pFlame", src: "Graphics/Particles/ExplosionFlame.png"},
 		{id:"pCloud", src: "Graphics/Particles/ExplosionCloud2.png"},
 		{id:"pSpark", src: "Graphics/Particles/Sparks.png"},
-		{id:"pwhitePx", src: "Graphics/Particles/whitePx.png"}
+		{id:"pwhitePx", src: "Graphics/Particles/whitePx.png"},
+		{id:"pGreenPix", src: "Graphics/Particles/Scan.png"}
 				]);
 	
 	bar.stage.update();

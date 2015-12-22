@@ -131,6 +131,11 @@ Vector.prototype.outRotate = function(rad)
 	return out;
 }
 
+Vector.prototype.distance = function(vec)	
+{
+	return Math.sqrt(Math.pow(vec.x - this.x, 2.0) +  Math.pow(vec.y - this.y, 2.0));
+}
+
 Vector.prototype.angleToY = function()  
 {
     var t = this.outNormalised();

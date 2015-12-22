@@ -112,6 +112,56 @@ function ProtoParticles()
 		
 	}
 
+	var scanMove = function(delta)	{
+		if (this.parentEmitter.args[1].probeList.length > 0)	{
+			var probe = this.parentEmitter.args[1].probeList[this.parentEmitter.args[1].probeList.length-1];
+			if (this.phase == 1)	{
+				if (this.worldPosition.distance(probe.position) < 700*delta)	{
+					this.worldPosition.x = probe.position.x;
+					this.worldPosition.y = probe.position.y;
+					this.phase = 0;
+					this.dead = true;
+				}	else 	{
+					this.velocity.x = probe.position.x - this.worldPosition.x;
+					this.velocity.y = probe.position.y - this.worldPosition.y;
+					this.velocity.normalise();
+					this.velocity.scalarMult(700);
+					this.worldPosition.x += this.velocity.x * delta;
+					this.worldPosition.y += this.velocity.y * delta;
+				}
+				this.sprite.x = this.worldPosition.x;
+				this.sprite.y = this.worldPosition.y;
+				return;
+			}	else if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) 
+				||	this.elapsed >= 4)	{
+				this.phase = 1;
+				
+				return;
+			}
+		
+			// Use the gravPlanetFade function above. A better system wouldn't need copypasta.
+			this.parentEmitter.args[0].getTotalAttractionVector(this.worldPosition, this.force);
+			if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false))	{
+				this.dead = true;
+			}
+			this.velocity.x += this.force.x * delta;
+			this.velocity.y += this.force.y * delta;
+
+			this.worldPosition.x += this.velocity.x * delta;
+			this.worldPosition.y += this.velocity.y * delta;
+			this.sprite.x = this.worldPosition.x;
+			this.sprite.y = this.worldPosition.y;
+
+			this.sprite.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
+		}	else if (this.phase == 2) 	{
+			this.sprite.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
+		}	else 	{
+			this.phase = 2;
+			this.ttl = this.elapsed + 0.5;
+			this.startFade = this.elapsed;
+		}
+	}
+
 	this.dustCloud = new Particle( new createjs.SpriteSheet({
                         "frames":
                         {
@@ -222,4 +272,23 @@ function ProtoParticles()
 						gravPlanetFade,
 						0.5, undefined, false, true);
 	this.spark.startFade = 0.25;
-}
+	console.log(preload.getResult("pGreenPix"))
+	this.scan = new Particle( new createjs.SpriteSheet({
+						"frames":
+						{
+							width: 9,
+							height: 9,
+							regX: 4.5,
+							regY: 4.5
+						},
+						animations: {
+                            a0:[0],a1:[1],a2:[2],a3:[3],
+                            a4:[4],a5:[5],a6:[6],a7:[7],
+                            a8:[8],a9:[9]
+						},
+						"images": [preload.getResult("pGreenPix")]}),
+						new Vector(0,0),
+						scanMove,
+						100, undefined, false, true);
+
+}	

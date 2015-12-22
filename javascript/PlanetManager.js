@@ -1,7 +1,9 @@
-function PlanetManager()
+function PlanetManager(pm)
 {
 	this.planetBorder = new Vector(100,100);
 	this.stage = new createjs.Container();
+
+	this.levelType = "scan";
 
 	this.dbgShape = new createjs.Shape();
 
@@ -164,7 +166,7 @@ PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	return false;
 }
 
-PlanetManager.prototype.checkScans = function(position, rad)	{
+PlanetManager.prototype.checkScans = function(position, rad, emit)	{
 	var out = new Array();
 	for (var i = 0; i < this.planetList.length; i++)	{
 		if (collideCircleCircle(position, rad, this.planetList[i].sprite, this.planetList[i].targetRadius))	{
@@ -198,7 +200,7 @@ PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, recor
 
 		output.path.push(position.clone());
 		
-		var scanned = this.checkScans(position, objRad);
+		var scanned = this.checkScans(position, objRad, false);
 		for (var i = 0; i < scanned.length; i++)	{
 			if (!contains(output.scans, scanned[i]))	{
 				output.scans.push(scanned[i]);
