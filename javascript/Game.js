@@ -2,6 +2,9 @@ function Game()
 {
 	this.stage = new createjs.Stage(canvas);
 
+	this.scaledStage = new createjs.Container();
+	this.scaledStage.scaleX = this.scaledStage.scaleY = 0.5;
+
 	this.background = new createjs.Bitmap(preload.getResult("background"));
 
 	this.particleManager = new ParticleManager();
@@ -43,6 +46,7 @@ function Game()
 		this.UI.scanBar.alpha = 1.0;
 	}	else   {
 		this.UI.scanBar.alpha = 0.0;
+		this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
 	}
 
 	this.dustEmitter = undefined;
@@ -100,6 +104,10 @@ Game.prototype.Update = function(delta) {
 	this.stage.update();
 };
 
+Game.prototype.updateGraphicsScale = function()	{
+	this.scale = 0.5;
+} 
+
 Game.prototype.tick = function(evt)	{
 	this.Update(TIMESTEP);
 	mouse.last = mouse.down;
@@ -107,11 +115,14 @@ Game.prototype.tick = function(evt)	{
 
 Game.prototype.setStage = function()	{
 	this.stage.addChild(this.background);
-	this.stage.addChild(this.particleManager.subStage);
-	this.stage.addChild(this.planetManager.stage);
-	this.stage.addChild(this.ship.sprite);
-	this.stage.addChild(this.probeManager.stage);
-	this.stage.addChild(this.particleManager.superStage);
+	this.scaledStage.addChild(this.particleManager.subStage);
+	this.scaledStage.addChild(this.planetManager.stage);
+	this.scaledStage.addChild(this.ship.sprite);
+	this.scaledStage.addChild(this.probeManager.stage);
+	this.scaledStage.addChild(this.particleManager.superStage);
+
+	this.stage.addChild(this.scaledStage);
+
 	this.stage.addChild(this.UI.stage);
 
 	if (DEBUG)	{
@@ -167,6 +178,9 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.dustEmitterTrail.canEmit = false;
 
 		this.UI.scanBar.aplha = 1.0;
+		if (this.planetManager.levelType == "mine")	{
+			this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
+		}
 
 		this.probeManager.scanBurst.canEmit = true;
 

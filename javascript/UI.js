@@ -55,6 +55,82 @@ function UI(min, max)
 	this.droppingBox = false;
 	this.droppingElapsed = 0;
 	this.droppingTTL = 0.35;
+
+	this.mineTargetT = undefined;
+	this.mineTargetB = undefined;
+	this.mineTargetL = undefined;
+	this.mineTargetR = undefined;
+	this.setupMineTargets();
+	this.targettingMine = false;
+	this.minePos = new Vector(0,0);
+	this.MTelapsed = 0.0;
+	this.MTfadeIn = 0.25;
+	this.MTmoveIn = 1.00;
+	this.MTfadeOut = 0.25;
+}
+
+UI.prototype.showMineTarget = function(minePos)	{
+	this.minePos.x = minePos.x;
+	this.minePos.y = minePos.y;
+
+	this.stage.addChild(this.mineTargetT, this.mineTargetB, this.mineTargetL, this.mineTargetR);
+	
+	var startOffset = 400;
+
+	this.mineTargetT.x = this.mineTargetB.x = minePos.x;
+	this.mineTargetL.x = minePos.x - startOffset;
+	this.mineTargetR.x = minePos.x + startOffset;
+
+	this.mineTargetL.y = this.mineTargetR.y = minePos.y;
+	this.mineTargetT.y = minePos.y - startOffset;
+	this.mineTargetB.y = minePos.y + startOffset;
+
+	this.mineTargetT.alpha = this.mineTargetB.alpha = 
+		this.mineTargetL.alpha = this.mineTargetR.alpha = 0.0;
+
+	this.targettingMine = true;
+	this.MTelapsed = 0.0;
+}
+
+UI.prototype.updateMineTarget = function(delta)	{
+	this.MTelapsed += delta;
+
+	var surroundOffset = 55;
+
+	if (this.MTelapsed >= this.MTfadeIn+this.MTmoveIn+this.MTfadeOut)	{
+		// We are done. Clean up.
+		this.stage.removeChild(this.mineTargetT, this.mineTargetB, this.mineTargetL, this.mineTargetR);
+		this.targettingMine = false;
+		return;
+	}	else if (this.MTelapsed >= this.MTfadeIn+this.MTmoveIn)	{
+		// Fade out phase
+		var mu = (this.MTelapsed - (this.MTfadeIn+this.MTmoveIn)) / this.MTfadeOut;
+		
+		this.mineTargetT.alpha = this.mineTargetB.alpha = 
+			this.mineTargetL.alpha = this.mineTargetR.alpha = 
+				lerp(1.0, 0, mu);
+	}	else if (this.MTelapsed >= this.MTfadeIn)	{
+		// Move the targets inwards exponentially
+		this.mineTargetT.alpha = this.mineTargetB.alpha = 
+			this.mineTargetL.alpha = this.mineTargetR.alpha = 1.0;
+	 	var t = (this.MTelapsed - (this.MTfadeIn));
+	 	var delay = 0.0;
+		this.mineTargetT.y = cosineInterpolate(this.mineTargetT.y, this.minePos.y-surroundOffset, 
+			Math.min(Math.max(0, t / (this.MTmoveIn-3*delay)), 1));
+		this.mineTargetR.x = cosineInterpolate(this.mineTargetR.x, this.minePos.x+surroundOffset, 
+			Math.min(Math.max(0, (t-delay)) / (this.MTmoveIn-2*delay), 1));
+		this.mineTargetB.y = cosineInterpolate(this.mineTargetB.y, this.minePos.y+surroundOffset, 
+			Math.min(Math.max(0, (t-2*delay)) / (this.MTmoveIn-delay), 1));
+		this.mineTargetL.x = cosineInterpolate(this.mineTargetL.x, this.minePos.x-surroundOffset, 
+			Math.min(Math.max(0, (t-3*delay)) / (this.MTmoveIn), 1));
+	} 	else 	{
+		// Fade in phase
+		var mu = this.MTelapsed / this.MTfadeIn;
+
+		this.mineTargetT.alpha = this.mineTargetB.alpha = 
+			this.mineTargetL.alpha = this.mineTargetR.alpha = 
+				lerp(0, 1.0, mu);
+	}
 }
 
 UI.prototype.startBoxDrop = function()	{
@@ -131,6 +207,10 @@ UI.prototype.Update = function(delta, swipe, probeMan) {
 										this.fallBox.y, 10, this.droppingTTL,1.50)
 			this.fallBox.alpha = lerp(1.0, 0, this.droppingElapsed/this.droppingTTL);
 		}
+	}
+
+	if (this.targettingMine)	{
+		this.updateMineTarget(delta);
 	}
 };
 
@@ -320,4 +400,29 @@ UI.prototype.loadSprites = function()	{
 
 	this.cheatButton.x = canvas.width - (3 + 50);
 	this.cheatButton.y = canvas.height - (3 + 50);
+}
+
+UI.prototype.setupMineTargets = function()	{
+	var temp = new createjs.Sprite(
+					new createjs.SpriteSheet({
+						"frames": {
+                            "width": 100,
+                            "height": 30,
+                            "regX": 50,
+                            "regY": 15,
+                            "numFrames": 1
+                        },
+                        "animations": {
+                            "i":[0]
+                        },
+                        "images": [preload.getResult("mineTarget")]})
+					);
+	this.mineTargetT = temp.clone();
+	this.mineTargetT.rotation = 180;
+	this.mineTargetB = temp.clone();
+
+	this.mineTargetL = temp.clone();
+	this.mineTargetL.rotation = 90;
+	this.mineTargetR = temp.clone();
+	this.mineTargetR.rotation = 270;
 }

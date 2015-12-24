@@ -74,7 +74,8 @@ function init()  {
 		{id:"pCloud", src: "Graphics/Particles/ExplosionCloud2.png"},
 		{id:"pSpark", src: "Graphics/Particles/Sparks.png"},
 		{id:"pwhitePx", src: "Graphics/Particles/whitePx.png"},
-		{id:"pGreenPix", src: "Graphics/Particles/Scan.png"}
+		{id:"pGreenPix", src: "Graphics/Particles/Scan.png"},
+		{id:"mineTarget", src: "Graphics/MineTarget.png"}
 				]);
 	
 	bar.stage.update();

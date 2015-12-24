@@ -48,43 +48,38 @@ Probe.prototype.Update = function(delta, camRect, markers)	{
 
 	this.updateRect();
 
-	if (!markers || intersectRect(this.rect, camRect))	{
-		this.sprite.gotoAndStop("probe");
-		this.sprite.rotation = 0;
+	// if (!markers || intersectRect(this.rect, camRect))	{
+	// 	this.sprite.gotoAndStop("probe");
+	// 	this.sprite.rotation = 0;
 
 		this.sprite.x = this.position.x;
 		this.sprite.y = this.position.y;
-	}	else	{
-		this.sprite.gotoAndStop("marker");
+	// }	else	{
+	// 	this.sprite.gotoAndStop("marker");
 
-		this.sprite.x = this.position.x;
-		this.sprite.y = this.position.y;
+	// 	this.sprite.x = this.position.x;
+	// 	this.sprite.y = this.position.y;
 
-		if (this.sprite.x > camRect.x + camRect.width)	{
-			this.sprite.x = camRect.width - (this.rect.width/2);
-			this.sprite.rotation = 90;
-		}	else if (this.sprite.x < camRect.x)	{
-			this.sprite.x = this.rect.width/2;
-			this.sprite.rotation = 270;
-		}
+	// 	if (this.sprite.x > camRect.x + camRect.width)	{
+	// 		this.sprite.x = camRect.width - (this.rect.width/2);
+	// 		this.sprite.rotation = 90;
+	// 	}	else if (this.sprite.x < camRect.x)	{
+	// 		this.sprite.x = this.rect.width/2;
+	// 		this.sprite.rotation = 270;
+	// 	}
 
-		if (this.sprite.y > camRect.y + camRect.height)	{
-			this.sprite.y = camRect.height - (this.rect.height/2);
-			this.sprite.rotation = 180;
-		}	else if (this.sprite.y < camRect.y)	{
-			this.sprite.y = this.rect.width/2;
-			this.sprite.rotation = 0;
-		}
-	}
+	// 	if (this.sprite.y > camRect.y + camRect.height)	{
+	// 		this.sprite.y = camRect.height - (this.rect.height/2);
+	// 		this.sprite.rotation = 180;
+	// 	}	else if (this.sprite.y < camRect.y)	{
+	// 		this.sprite.y = this.rect.width/2;
+	// 		this.sprite.rotation = 0;
+	// 	}
+	// }
 
 	
 
 	this.force.x = this.force.y = 0;
-
-	// this.scannedText.x = this.position.x-10;
-	// this.scannedText.y = this.position.y-15;
-	// this.scannedText.text = (this.needScanned - this.scannedList.length).toString();
-	
 }
 
 Probe.prototype.addForce = function(force)	{
