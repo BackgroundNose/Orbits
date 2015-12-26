@@ -2,8 +2,11 @@ function Game()
 {
 	this.stage = new createjs.Stage(canvas);
 
+	this.minScaleBox = new createjs.Rectangle(20, 20, canvas.width-40, canvas.height-40);
+	this.maxdisHor = this.minScaleBox.width;
+	this.maxdisVert = this.minScaleBox.height; 
 	this.scaledStage = new createjs.Container();
-	this.scaledStage.scaleX = this.scaledStage.scaleY = 0.5;
+	this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
 
 	this.background = new createjs.Bitmap(preload.getResult("background"));
 
@@ -100,13 +103,34 @@ Game.prototype.Update = function(delta) {
 	}
 
 	this.particleManager.update(delta, this.probeManager.camRect);
-
+	this.setCameraScale();
 	this.stage.update();
 };
 
-Game.prototype.updateGraphicsScale = function()	{
-	this.scale = 0.5;
-} 
+Game.prototype.setCameraScale = function()	{
+	var probe = this.probeManager.probeList[0];
+	if (this.probeManager.probeList.length == 0 ||
+		collidePointRect(probe.position, 
+			this.minScaleBox))	{
+		this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
+	}	else 	{
+		var dispHor = clamp(
+			Math.max(this.minScaleBox.x - probe.position.x, 
+				probe.position.x - (this.minScaleBox.width+20)),
+			0, this.maxdisHor);
+		var dispVert = clamp(
+			Math.max(this.minScaleBox.y - probe.position.y, 
+				probe.position.y - (this.minScaleBox.height+20)),
+			0, this.maxdisVert);
+
+		this.scaledStage.scaleX = this.scaledStage.scaleY = Math.min(1.0-dispHor/this.maxdisHor, 1.0-dispVert/this.maxdisVert);
+
+		this.scaledStage.x = -Math.min(0, probe.position.x-20);
+		this.scaledStage.y = -Math.min(0, probe.position.y-20);
+
+		console.log(this.scaledStage.scaleX);
+	}
+}
 
 Game.prototype.tick = function(evt)	{
 	this.Update(TIMESTEP);
