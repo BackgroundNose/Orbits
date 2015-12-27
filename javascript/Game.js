@@ -3,8 +3,8 @@ function Game()
 	this.stage = new createjs.Stage(canvas);
 
 	this.minScaleBox = new createjs.Rectangle(20, 20, canvas.width-40, canvas.height-40);
-	this.maxdisHor = this.minScaleBox.width;
-	this.maxdisVert = this.minScaleBox.height; 
+	this.maxExtraHor = canvas.width;
+	this.maxExtraVert = canvas.height; 
 	this.scaledStage = new createjs.Container();
 	this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
 
@@ -113,22 +113,32 @@ Game.prototype.setCameraScale = function()	{
 		collidePointRect(probe.position, 
 			this.minScaleBox))	{
 		this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
+		this.scaledStage.x = this.scaledStage.y = 0;
 	}	else 	{
-		var dispHor = clamp(
-			Math.max(this.minScaleBox.x - probe.position.x, 
-				probe.position.x - (this.minScaleBox.width+20)),
-			0, this.maxdisHor);
-		var dispVert = clamp(
-			Math.max(this.minScaleBox.y - probe.position.y, 
-				probe.position.y - (this.minScaleBox.height+20)),
-			0, this.maxdisVert);
+		if (probe.position.x < 0)	{
+			var spanX = canvas.width-probe.position.x;
+		}	else if (probe.position.x > canvas.width)	{
+			var spanX = probe.position.x;
+		}	else 	{
+			var spanX = canvas.width;
+		}
 
-		this.scaledStage.scaleX = this.scaledStage.scaleY = Math.min(1.0-dispHor/this.maxdisHor, 1.0-dispVert/this.maxdisVert);
+		if (probe.position.y < 0)	{
+			var spanY = canvas.height-probe.position.y;
+		}	else if (probe.position.y > canvas.height)	{
+			var spanY = probe.position.y;
+		}	else 	{
+			var spanY = canvas.height;
+		}
 
-		this.scaledStage.x = -Math.min(0, probe.position.x-20);
-		this.scaledStage.y = -Math.min(0, probe.position.y-20);
+		var scalX = clamp(canvas.width/spanX, 0.5, 1.0);
+		var scalY = clamp(canvas.height/spanY, 0.5, 1.0);
 
-		console.log(this.scaledStage.scaleX);
+		this.scaledStage.scaleX = 
+			this.scaledStage.scaleY = Math.min(scalX, scalY);
+
+		this.scaledStage.x = -Math.min(0, probe.position.x*this.scaledStage.scaleX);
+		this.scaledStage.y = -Math.min(0, probe.position.y*this.scaledStage.scaleY);
 	}
 }
 
@@ -239,6 +249,9 @@ Game.prototype.moveToNextLevel = function(delta)	{
 			this.setupLevel();
 			this.nextLevelMade = true;
 			this.probeManager.scanBurst.canEmit = false;
+
+			this.scaledStage.x = this.scaledStage.y = 0;
+			this.scaledStage.scaleX = this.scaledStage.scaleY = 1;
 		}
 
 		var diff = this.planetsMoveRate * delta;
@@ -259,6 +272,11 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.UI.scanBar.alpha = lerp(this.UI.scanBar.alpha, 0, mu);
 		this.planetManager.stage.x += diff;
 		this.probeManager.stage.x += diff;
+
+		this.scaledStage.x = lerp(this.scaledStage.x, 0, mu);
+		this.scaledStage.y = lerp(this.scaledStage.y, 0, mu);
+		this.scaledStage.scaleX = lerp(this.scaledStage.scaleX, 1, mu);
+		this.scaledStage.scaleY = lerp(this.scaledStage.scaleY, 1, mu);
 	}
 
 	this.background.x += globalMove;
