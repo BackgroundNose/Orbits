@@ -19,6 +19,26 @@ function Mine()	{
 		);
     this.sprite.gotoAndStop("mine");
 
+    this.cover = new createjs.Sprite(
+        new createjs.SpriteSheet({
+                        "frames": {
+                            "width": 75,
+                            "height": 75,
+                            "regX": 37.5,
+                            "regY": 37.5,
+                            "numFrames": 1
+                        },
+                        "animations": {
+                            "mine":[0],
+                            "break":[1,7,"dead",0.25],
+                            "dead":[8]
+                        },
+                        "images": [preload.getResult("mineCover")]})
+        );
+
+    this.eyeLight = undefined; //Set in setupContainer
+    this.eyeLightElapsed = 0;
+
 	this.radius = 35;
     this.kill = false;
 
@@ -34,6 +54,9 @@ Mine.prototype.update = function (delta) {
         this.lightElapsed[i] += delta;
         this.lightList[i].alpha = cosineInterpolate(0.25,1,this.lightElapsed[i]);
     }
+    this.eyeLightElapsed += delta/3.20;
+    this.eyeLight.x = cosineInterpolate(-10,10,this.eyeLightElapsed);
+    this.eyeLight.y = cosineInterpolate(0,4, this.eyeLightElapsed*2) //(Math.pow(2*(this.eyeLightElapsed%1)-1,2)-1) * -4;
 }
 
 Mine.prototype.randomiseLights = function  () {
@@ -64,8 +87,6 @@ Mine.prototype.setupContainer = function() {
     var width = this.sprite.getBounds().width/2.0;
     var height = this.sprite.getBounds().height/2.0;
     
-    // light.x = 0; light.y = 0;
-    // this.lightList.push(light.clone());
     light.x = 14 - width; light.y = 9 - height;
     this.lightList.push(light.clone());
     light.x = 67 - width; light.y = 9 - height;
@@ -74,13 +95,22 @@ Mine.prototype.setupContainer = function() {
     this.lightList.push(light.clone());
     light.x = 69 - width; light.y = 64 - height;
     this.lightList.push(light);
-    
+
+    this.eyeLight = light.clone();
+    this.eyeLight.scaleX = this.eyeLight.scaleY = 1.5;
+    this.eyeLight.x = cosineInterpolate(-10,10,this.eyeLightElapsed);
+    this.eyeLight.y = 0;
+    this.eyeLightElapsed = Math.random();
+
     this.cont.addChild(this.sprite);
+
+    this.cont.addChild(this.eyeLight);
 
     for (var i = 0; i < this.lightList.length; i++) {
         this.lightElapsed.push(0);
         this.cont.addChild(this.lightList[i]);
     }
+    this.cont.addChild(this.cover);
 }
 
 Mine.prototype.moveTo = function(pos)	{

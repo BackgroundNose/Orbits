@@ -78,7 +78,8 @@ function init()  {
 		{id:"mineTarget", src: "Graphics/MineTarget.png"},
 		{id:"pBits", src: "Graphics/Particles/Bits.png"},
 		{id:"pShock", src: "Graphics/Particles/Shockwave.png"},
-		{id:"mineLight", src: "Graphics/MineLight.png"}
+		{id:"mineLight", src: "Graphics/MineLight.png"},
+		{id:"mineCover", src: "Graphics/MineCover.png"}
 				]);
 	
 	bar.stage.update();
