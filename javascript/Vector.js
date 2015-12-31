@@ -124,6 +124,23 @@ Vector.prototype.rotate = function(rad)
 	return this;
 }
 
+Vector.prototype.reflect = function(normal)	{
+	// A function to give the result of:
+	//
+	//	| /o
+	//  |/ 
+	//  |---->  normal
+	//  |\
+	//  | \i
+	//
+	// Vector i reflected across normal vector l
+
+	var normalised = normal.outNormalised();
+	var ox = 2*this.x*normalised.x*normalised.x - this.x;
+	var oy = 2*this.y*normalised.y*normalised.y - this.y;
+	return new Vector(ox,oy);
+}
+
 Vector.prototype.outRotate = function(rad)
 {
 	var out = this.clone();

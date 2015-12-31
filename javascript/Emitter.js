@@ -169,7 +169,7 @@ Emitter.prototype.emit = function(toEmit)
 	}
 }
 
-Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame)
+Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame, animation)
 {
 	var angleInc = (2*Math.PI) / toEmit;
 	var emitIDX = undefined;
@@ -205,6 +205,9 @@ Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, s
 			this.particleList[emitIDX].setToRandomFrame();
 		}	else {
 			this.particleList[emitIDX].sprite.stop();
+		}
+		if (animation !== undefined)	{
+			this.particleList[emitIDX].sprite.gotoAndPlay(animation);
 		}
 
 		if (!this.particleList[emitIDX].onStage)

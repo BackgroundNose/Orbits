@@ -9,9 +9,9 @@ function ProtoParticles()
 		this.sprite.y = this.worldPosition.y;
 		this.sprite.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
 
-		if (!collidePointRect(this.worldPosition, this.parentEmitter.args.extCamRect))	{
-			this.dead = true;
-		}
+		// if (!collidePointRect(this.worldPosition, this.parentEmitter.args.extCamRect))	{
+		// 	this.dead = true;
+		// }
 	};
 
 	var linMoveNoPhysFadeScale = function(delta) {
@@ -97,7 +97,7 @@ function ProtoParticles()
 	}
 	var gravPlanetFade = function(delta)	{
 		this.parentEmitter.args[0].getTotalAttractionVector(this.worldPosition, this.force);
-		if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false))	{
+		if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) !== undefined)	{
 			this.dead = true;
 		}
 		this.velocity.x += this.force.x * delta;
@@ -133,7 +133,7 @@ function ProtoParticles()
 				this.sprite.x = this.worldPosition.x;
 				this.sprite.y = this.worldPosition.y;
 				return;
-			}	else if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) 
+			}	else if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) !== undefined
 				||	this.elapsed >= 4)	{
 				this.phase = 1;
 				
@@ -200,41 +200,6 @@ function ProtoParticles()
 						1.0, undefined, false, false);
 	this.dustCloudTrail.shape = new createjs.Shape();
 
-	this.exploFlame = new Particle( new createjs.SpriteSheet({
-						"frames":
-						{
-							"width": 10,
-							"height": 20,
-							"regX": 5,
-							"regY": 10,
-							"numFrames": 1
-						},
-						"animations": {
-                            "I":[0]
-						},
-						"images": [preload.getResult("pFlame")]}),
-						new Vector(0,0),
-						linMoveNoPhysFade,
-
-						0.3, undefined, false, false);
-	this.exploFlame.startFade = 0.2;
-	// this.exploCloud = new Particle( new createjs.SpriteSheet({
-	// 					"frames":
-	// 					{
-	// 						"width": 56,
-	// 						"height": 56,
-	// 						"regX": 28,
-	// 						"regY": 28,
-	// 						"numFrames": 10
-	// 					},
-	// 					"animations": {
- //                            "0":[0],"1":[1],"2":[2],"3":[3],"4":[4],"5":[5],"6":[6],"7":[7],"8":[8],"9":[9]
-	// 					},
-	// 					"images": [preload.getResult("pCloud")]}),
-	// 					new Vector(0,0),
-	// 					linMoveNoPhysFadeScaleRotate,
-	// 					0.7, undefined, false);
-	// this.exploCloud.startFade = 0.3;
 	var fr = 0.15;
 	this.exploCloud = new Particle( new createjs.SpriteSheet({
 						"frames":
@@ -273,7 +238,7 @@ function ProtoParticles()
 						gravPlanetFade,
 						0.5, undefined, false, true);
 	this.spark.startFade = 0.25;
-	console.log(preload.getResult("pGreenPix"))
+
 	this.scan = new Particle( new createjs.SpriteSheet({
 						"frames":
 						{
@@ -292,4 +257,39 @@ function ProtoParticles()
 						scanMove,
 						100, undefined, false, true);
 
+	this.bits = new Particle( new createjs.SpriteSheet({
+		"frames":
+		{
+			width: 2,
+			height: 2,
+			regX: 1,
+			regY: 1
+		},
+		animations:{
+  			a0:[0],a1:[1],a2:[2],a3:[3],
+            a4:[4],a5:[5],a6:[6],a7:[7],
+            a8:[8],a9:[9]
+		},
+		"images":[preload.getResult("pBits")]}),
+		new Vector(0, 0),
+		gravPlanetFade,
+		2, undefined, true, false);
+	this.bits.startFade = 1.5;
+
+	this.shockwave = new Particle( new createjs.SpriteSheet({
+		"frames":
+		{
+			width: 10,
+			height: 10,
+			regX: 5,
+			regY: 5
+		},
+		animations:{
+			wave:[0,9,"end",0.75], end:[9,9,"end",0.5]
+		},
+		"images":[preload.getResult("pShock")]}),
+		new Vector(0,0),
+		linMoveNoPhysFade,
+		0.35, undefined, false, false);
+	this.bits.startFade = 0.15;
 }	

@@ -62,7 +62,7 @@ function init()  {
 		{id:"background", src: "Graphics/Background2.png"},
 		{id:"ship", src: "Graphics/Ship2.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
-		{id:"mine", src: "Graphics/Mine.png"},
+		{id:"mine", src: "Graphics/Mine2.png"},
 		{id:"target", src: "Graphics/ScanTarget.png"},
 		{id:"powerBar", src: "Graphics/PowerBar.png"},
 		{id:"radial", src: "Graphics/Radial.png"},
@@ -75,7 +75,9 @@ function init()  {
 		{id:"pSpark", src: "Graphics/Particles/Sparks.png"},
 		{id:"pwhitePx", src: "Graphics/Particles/whitePx.png"},
 		{id:"pGreenPix", src: "Graphics/Particles/Scan.png"},
-		{id:"mineTarget", src: "Graphics/MineTarget.png"}
+		{id:"mineTarget", src: "Graphics/MineTarget.png"},
+		{id:"pBits", src: "Graphics/Particles/Bits.png"},
+		{id:"pShock", src: "Graphics/Particles/Shockwave.png"}
 				]);
 	
 	bar.stage.update();

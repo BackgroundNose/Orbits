@@ -17,7 +17,7 @@ function Mine()	{
                         "images": [preload.getResult("mine")]})
 		);
     this.sprite.gotoAndStop("mine");
-	this.sprite.rotation = 360*Math.random();
+	// this.sprite.rotation = 360*Math.random();
 
 	this.radius = 35;
     this.kill = false;

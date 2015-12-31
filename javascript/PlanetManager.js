@@ -155,15 +155,15 @@ PlanetManager.prototype.attractionFunction = function(pos, planet)	{
 PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	for (var i = 0; i < this.planetList.length; i++)	{
 		if (collideCircleCircle(position, rad, this.planetList[i].sprite, this.planetList[i].radius))	{
-			return true;
+			return this.planetList[i];
 		}
 	}
 
 	if (this.mine !== undefined && mineCheck && collideCircleCircle(position, rad, this.mine.position, this.mine.radius))	{
 		this.mine.setupDeath();
-		return true;
+		return this.mine;
 	}
-	return false;
+	return undefined;
 }
 
 PlanetManager.prototype.checkScans = function(position, rad, emit)	{
@@ -207,7 +207,7 @@ PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, recor
 			}
 		}
 
-		if ( this.checkCollisions(position, objRad, false) )	{
+		if ( this.checkCollisions(position, objRad, false) !== undefined )	{
 			return output;
 		}
 	}

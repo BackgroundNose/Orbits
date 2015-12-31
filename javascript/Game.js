@@ -8,6 +8,10 @@ function Game()
 	this.scaledStage = new createjs.Container();
 	this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
 
+	this.levelBoundary = new createjs.Rectangle(-canvas.width, -canvas.height, 3*canvas.width, 3*canvas.height);
+
+	this.screenRect = new createjs.Rectangle(0, 0, canvas.width, canvas.height);
+
 	this.background = new createjs.Bitmap(preload.getResult("background"));
 
 	this.particleManager = new ParticleManager();
@@ -38,7 +42,7 @@ function Game()
 	this.minLaunchPower = this.minLaunchProp*this.maxLaunchPower;
 
 	this.probeManager = new ProbeManager(this.minLaunchPower, this.maxLaunchPower, this.minLaunchProp,
-										 this.particleManager, this.planetManager);
+										 this.particleManager, this.planetManager, this.levelBoundary);
 
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
@@ -61,13 +65,13 @@ function Game()
 }
 
 Game.prototype.Update = function(delta) {
+	this.swipe.Update();
+
 	if (this.transitioning)	{
 		this.moveToNextLevel(delta);
 		this.stage.update();
 		return;
 	}
-
-	this.swipe.Update();
 
 	if (this.swipe.complete)	{
 		if (this.swipe.swipeLength >= this.minLaunchLength)	{
@@ -90,7 +94,7 @@ Game.prototype.Update = function(delta) {
 	this.UI.Update(delta, this.swipe, this.probeManager);
 	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
-	this.probeManager.Update(delta, this.planetManager, this.UI);
+	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager);
 	this.planetManager.Update(delta);
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
@@ -102,23 +106,24 @@ Game.prototype.Update = function(delta) {
 		}
 	}
 
-	this.particleManager.update(delta, this.probeManager.camRect);
+	this.particleManager.update(delta);
 	this.setCameraScale();
 	this.stage.update();
 };
 
 Game.prototype.setCameraScale = function()	{
 	var probe = this.probeManager.probeList[0];
+	var border = 50;
 	if (this.probeManager.probeList.length == 0 ||
-		collidePointRect(probe.position, 
-			this.minScaleBox))	{
-		this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
-		this.scaledStage.x = this.scaledStage.y = 0;
+		collidePointRect(probe.position, this.minScaleBox))	{
+		this.scaledStage.scaleX = this.scaledStage.scaleY = lerp( this.scaledStage.scaleX, 1.0, 0.1);
+		this.scaledStage.x = lerp(this.scaledStage.x, 0, 0.1);
+		this.scaledStage.y = lerp(this.scaledStage.y, 0, 0.1);
 	}	else 	{
 		if (probe.position.x < 0)	{
 			var spanX = canvas.width-probe.position.x;
 		}	else if (probe.position.x > canvas.width)	{
-			var spanX = probe.position.x;
+			var spanX = probe.position.x + border;
 		}	else 	{
 			var spanX = canvas.width;
 		}
@@ -126,7 +131,7 @@ Game.prototype.setCameraScale = function()	{
 		if (probe.position.y < 0)	{
 			var spanY = canvas.height-probe.position.y;
 		}	else if (probe.position.y > canvas.height)	{
-			var spanY = probe.position.y;
+			var spanY = probe.position.y + border;
 		}	else 	{
 			var spanY = canvas.height;
 		}
@@ -135,12 +140,22 @@ Game.prototype.setCameraScale = function()	{
 		var scalY = clamp(canvas.height/spanY, 0.5, 1.0);
 
 		this.scaledStage.scaleX = 
-			this.scaledStage.scaleY = Math.min(scalX, scalY);
+			this.scaledStage.scaleY = lerp(this.scaledStage.scaleX, Math.min(scalX, scalY), 0.1);
 
-		this.scaledStage.x = -Math.min(0, probe.position.x*this.scaledStage.scaleX);
-		this.scaledStage.y = -Math.min(0, probe.position.y*this.scaledStage.scaleY);
+		this.scaledStage.x = lerp(this.scaledStage.x, -Math.min(0, (probe.position.x-border)*this.scaledStage.scaleX), 0.1);
+		this.scaledStage.y = lerp(this.scaledStage.y, -Math.min(0, (probe.position.y-border)*this.scaledStage.scaleY), 0.1);
 	}
-}
+
+	this.updateScreenRect();
+	this.updateDustEmitters(this.screenRect);
+};
+
+Game.prototype.updateScreenRect = function()	{
+	this.screenRect.x = -this.scaledStage.x*(1/this.scaledStage.scaleX);
+	this.screenRect.y = -this.scaledStage.y*(1/this.scaledStage.scaleY);
+	this.screenRect.width = canvas.width * (1/this.scaledStage.scaleX);
+	this.screenRect.height = canvas.height * (1/this.scaledStage.scaleY);
+};
 
 Game.prototype.tick = function(evt)	{
 	this.Update(TIMESTEP);
@@ -164,6 +179,18 @@ Game.prototype.setStage = function()	{
 		this.stage.addChild(this.planetManager.dbgShape);
 	}
 };
+
+Game.prototype.updateDustEmitters = function(screenRect)	{
+	this.dustEmitterRight.emitBox.x = screenRect.x + screenRect.width;
+	this.dustEmitterRight.emitBox.height = this.dustEmitterLeft.emitBox.height = screenRect.width + 20;
+	this.dustEmitterLeft.emitBox.x = screenRect.x - 10;
+	this.dustEmitterRight.emitBox.y = this.dustEmitterLeft.y = screenRect.y - 10;
+
+	this.dustEmitterTop.emitBox.x = this.dustEmitterBottom.emitBox.x = screenRect.x - 10;
+	this.dustEmitterTop.emitBox.width = this.dustEmitterBottom.emitBox.width = screenRect.width + 20;
+	this.dustEmitterTop.emitBox.y = screenRect.y - 10;
+	this.dustEmitterBottom.emitBox.y = screenRect.y + screenRect.height;
+}
 
 Game.prototype.setupParticles = function()	{
 	this.dustEmitterRight = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(canvas.width, 0, 10, canvas.height),
@@ -241,6 +268,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
+			this.probeManager.piecesCollected = 0;
+			this.UI.updateScanBar(0);
 			this.probeManager.scanBurst.killAll();
 			this.probeManager.puffEmitter.killAll();
 			this.probeManager.thruster.killAll();
@@ -265,7 +294,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	}	
 	else 	{
 		// Start Phase
-		this.probeManager.Update(delta, this.planetManager, this.UI);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
@@ -284,6 +313,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	this.particleManager.shiftAllParticles(new Vector(diff, 0));
 	this.probeManager.thruster.moveBy({x:diff, y:0});
 	this.particleManager.update(delta, this.probeManager.camRect);
+	this.UI.Update(delta, this.swipe, this.probeManager);
 }
 
 Game.prototype.setupLevel = function()	{

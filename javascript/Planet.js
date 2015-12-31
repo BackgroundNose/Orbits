@@ -39,6 +39,8 @@ function Planet(rad, targetRad, num)
 
     this.num = num;
 
+    this.position = new Vector(0,0);
+
 	this.sprite.scaleX = rad/50;
 	this.sprite.scaleY = rad/50;
     this.targetSprite.scaleX = targetRad/100;
@@ -46,6 +48,8 @@ function Planet(rad, targetRad, num)
 }
 
 Planet.prototype.moveTo = function(pos) {
+    this.position.x = pos.x;
+    this.position.y = pos.y;
     this.sprite.x = pos.x;
     this.sprite.y = pos.y;
     this.targetSprite.x = pos.x;

@@ -1,4 +1,4 @@
-function ProbeManager(minP, maxP, minProp, particleManager, planetManager)	
+function ProbeManager(minP, maxP, minProp, particleManager, planetManager, levelBoundary)	
 {
 	this.puffEmitter = particleManager.addEmitterByType("sSmokePuff", new createjs.Rectangle(0, 0, 1,1), undefined,
 								undefined, {pm:planetManager});
@@ -27,14 +27,12 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager)
 	this.piecesRequired = this.scansRequired*this.piecesPerScan;
 	this.piecesCollected = 0;
 
+	this.levelBoundary = levelBoundary;
+
 	this.smokeParticles = 32;
-
-	this.markers = true;
-
-	this.camRect = new createjs.Rectangle(0,0,canvas.width, canvas.height);	//What the camera covers in world space
 }
 
-ProbeManager.prototype.Update = function(delta, planetManager, UI) {
+ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManager) {
 	if (DEBUG)	{
 		this.dbgShape.graphics.clear();
 	}
@@ -43,14 +41,34 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI) {
 		if (DEBUG)	{
 			this.dbgShape.graphics.s("#F55");
 		}
+		var lastPos = this.probeList[i].position.clone();
+		var lastVel = this.probeList[i].velocity.clone();
 		if (this.probeList[i].experienceGravity)	{
 			var force = new Vector(0,0);
 			planetManager.getTotalAttractionVector(this.probeList[i].position, force);
 			this.probeList[i].addForce(force);
-			this.probeList[i].Update(delta, this.camRect, this.markers);
+			this.probeList[i].Update(delta);
 		}
 
-		if (planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true))	{
+		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
+		if (hit !== undefined)	{
+			var dir = this.probeList[i].position.seperation(hit.position);
+			dir.normalise();
+			// var reflec = this.probeList[i].velocity.reflect(dir);
+			dir.scalarMult(-1);
+			var bits = particleManager.addEmitterByType("bits", new createjs.Rectangle(lastPos.x,lastPos.y,1,1), 
+				new Vector(0,0), new Vector(0,0), {"pm":planetManager});
+			bits.directedBurst(16, dir, 5, Math.min(lastVel.norm()*0.45,40), 
+				Math.min(lastVel.norm()*8.0,600), 1.0, 4.0, "R", 0, 0, true);
+
+			var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(lastPos.x,lastPos.y,1,1), 
+				new Vector(0,0), new Vector(0,0), undefined);
+			shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
+			shockwave.circleBurst(12, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
+			console.log(shockwave);
+			this.probeList[i].kill = true;
+		}
+		if (!collidePointRect(this.probeList[i].position, this.levelBoundary))	{
 			this.probeList[i].kill = true;
 		}
 		if (planetManager.levelType == "scan")	{
@@ -88,7 +106,6 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI) {
 ProbeManager.prototype.clearStuff = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
 		this.stage.removeChild(this.probeList[i].sprite);
-		// this.stage.removeChild(this.probeList[i].scannedText);
 	}
 	this.probeList.length = 0;
 }
@@ -121,7 +138,7 @@ ProbeManager.prototype.refireProbe = function(angle, power)	{
 		return;
 	}	
 	this.thruster.canEmit = false;
-	if (!intersectRect(this.camRect, this.probeList[0].rect))	{
+	if (!intersectRect(this.levelBoundary, this.probeList[0].rect))	{
 		this.probeList[0].kill = true;
 		this.probeList[0].stopAndWait();
 	}	else	{
@@ -143,7 +160,7 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 		return;
 	}
 
-	if (!intersectRect(this.camRect, this.probeList[0].rect))	{
+	if (!intersectRect(this.levelBoundary, this.probeList[0].rect))	{
 		this.probeList[0].kill = true;
 		return;
 	}
