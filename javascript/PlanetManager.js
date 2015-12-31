@@ -56,9 +56,13 @@ PlanetManager.prototype.Update = function(delta) {
 		}
 	}
 
+	if (this.mine !== undefined)	{
+		this.mine.update(delta);
+	}
+
 	if (this.mine !== undefined && this.mine.kill)	{
 		this.remake = true;
-		this.stage.removeChild(this.mine.sprite);
+		this.stage.removeChild(this.mine.cont);
 		this.mine = undefined;
 	}
 };
@@ -106,7 +110,7 @@ PlanetManager.prototype.addTargetGraphics = function()	{
 
 PlanetManager.prototype.clearStuff = function()	{
 	if (this.mine !== undefined)	{
-		this.stage.removeChild(this.mine.sprite);
+		this.stage.removeChild(this.mine.cont);
 	}
 
 	for (var i = 0; i < this.planetList.length; i++)	{
@@ -265,7 +269,7 @@ PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan
 					{
 						this.mine = new Mine();
 						this.mine.moveTo(step);
-						this.stage.addChild(this.mine.sprite);
+						this.stage.addChild(this.mine.cont);
 						
 						console.log(aList[a], fList[f]);
 

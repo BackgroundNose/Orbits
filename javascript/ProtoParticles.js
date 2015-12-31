@@ -290,6 +290,6 @@ function ProtoParticles()
 		"images":[preload.getResult("pShock")]}),
 		new Vector(0,0),
 		linMoveNoPhysFade,
-		0.35, undefined, false, false);
+		0.4, undefined, false, false);
 	this.bits.startFade = 0.15;
 }	

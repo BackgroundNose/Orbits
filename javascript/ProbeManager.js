@@ -52,20 +52,18 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 
 		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
 		if (hit !== undefined)	{
-			var dir = this.probeList[i].position.seperation(hit.position);
-			dir.normalise();
-			// var reflec = this.probeList[i].velocity.reflect(dir);
-			dir.scalarMult(-1);
-			var bits = particleManager.addEmitterByType("bits", new createjs.Rectangle(lastPos.x,lastPos.y,1,1), 
-				new Vector(0,0), new Vector(0,0), {"pm":planetManager});
-			bits.directedBurst(16, dir, 5, Math.min(lastVel.norm()*0.45,40), 
-				Math.min(lastVel.norm()*8.0,600), 1.0, 4.0, "R", 0, 0, true);
-
 			var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(lastPos.x,lastPos.y,1,1), 
 				new Vector(0,0), new Vector(0,0), undefined);
 			shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
 			shockwave.circleBurst(12, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
 			console.log(shockwave);
+			var tempX = this.thruster.emitBox.x;
+			var tempY = this.thruster.emitBox.y;
+			this.thruster.emitBox.x = lastPos.x;
+			this.thruster.emitBox.y = lastPos.y;
+			this.thruster.circleBurst(32, 250, 530, 0.8, 1.2, "R", 0, 360, false);
+			this.thruster.emitBox.x = tempX;
+			this.thruster.emitBox.y = tempY;
 			this.probeList[i].kill = true;
 		}
 		if (!collidePointRect(this.probeList[i].position, this.levelBoundary))	{
