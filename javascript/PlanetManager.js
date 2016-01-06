@@ -31,7 +31,7 @@ function PlanetManager(pm)
 	this.shipSpawnRect = new createjs.Rectangle(100,100,canvas.width/2.0, canvas.height-100);
 }
 
-PlanetManager.prototype.Update = function(delta) {
+PlanetManager.prototype.Update = function(delta, probeMan) {
 	if (DEBUG)	{
 		this.dbgShape.graphics.clear();
 		
@@ -57,7 +57,7 @@ PlanetManager.prototype.Update = function(delta) {
 	}
 
 	if (this.mine !== undefined)	{
-		this.mine.update(delta);
+		this.mine.update(delta, probeMan);
 	}
 
 	if (this.mine !== undefined && this.mine.kill)	{
@@ -164,7 +164,7 @@ PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	}
 
 	if (this.mine !== undefined && mineCheck && collideCircleCircle(position, rad, this.mine.position, this.mine.radius))	{
-		this.mine.setupDeath();
+		this.mine.startMineExplosion();
 		return this.mine;
 	}
 	return undefined;

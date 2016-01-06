@@ -62,7 +62,7 @@ function init()  {
 		{id:"background", src: "Graphics/Background2.png"},
 		{id:"ship", src: "Graphics/Ship2.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
-		{id:"mine", src: "Graphics/Mine2.png"},
+		{id:"mine", src: "Graphics/MineParts.png"},
 		{id:"target", src: "Graphics/ScanTarget.png"},
 		{id:"powerBar", src: "Graphics/PowerBar.png"},
 		{id:"radial", src: "Graphics/Radial.png"},

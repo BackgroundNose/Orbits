@@ -22,27 +22,10 @@ function ParticleManager()
 
 	this.update = function(delta)
 	{
-		// this.subStage.x = -camrect.x;
-		// this.subStage.y = -camrect.y;
-
-		// this.superStage.x = -camrect.x;
-		// this.superStage.y = -camrect.y;
-
 		var sepScal = 0;
 
 		for (var i=0; i < this.emitterList.length; i++)
 		{
-			// this.boxSepVec.x = ((this.emitterList[i].emitBox.x + this.emitterList[i].emitBox.width/2) - (camrect.x + camrect.width/2) );
-			// this.boxSepVec.y = ((this.emitterList[i].emitBox.y + this.emitterList[i].emitBox.height/2) - (camrect.y + camrect.height/2) );
-
-			// sepScal = this.boxSepVec.norm();
-
-			// if (this.emitterList[i].rangeDependent && sepScal > this.updateRange)	{
-			// 	this.emitterList[i].canEmit = false;
-			// }	else if ( this.emitterList[i].rangeDependent)	{
-			// 	this.emitterList[i].canEmit = true;
-			// }
-
 			if (this.emitterList[i].dead && this.emitterList[i].livingParticles == 0)	{	
 				for (var j = 0; j < this.emitterList[i].particleList.length; j++)	{
 					if (this.emitterList[i].particleList[j].onStage)
@@ -153,7 +136,7 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 			return this.emitterList[this.emitterList.length-1];
 		case "shockwave":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.shockwave,
-											0, 32, 0, new Vector(0,0), new Vector(0,0), 0.1));
+											0, 256, 0, new Vector(0,0), new Vector(0,0), 0.1));
 			return this.emitterList[this.emitterList.length-1];
 		default:
 			console.log("Unknown particle type!: ",type);

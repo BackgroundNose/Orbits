@@ -56,14 +56,27 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 				new Vector(0,0), new Vector(0,0), undefined);
 			shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
 			shockwave.circleBurst(12, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
-			console.log(shockwave);
+			
 			var tempX = this.thruster.emitBox.x;
 			var tempY = this.thruster.emitBox.y;
 			this.thruster.emitBox.x = lastPos.x;
 			this.thruster.emitBox.y = lastPos.y;
 			this.thruster.circleBurst(32, 250, 530, 0.8, 1.2, "R", 0, 360, false);
+			
+			if (hit === planetManager.mine)	{
+				console.log("here")
+				shockwave.emitBox.x = hit.position.x;
+				shockwave.emitBox.y = hit.position.y;
+				this.thruster.emitBox.x = hit.position.x;
+				this.thruster.emitBox.y = hit.position.y;
+				shockwave.circleBurst(64, 100, 170, 1.0, 1.0, "R", 0, 360, false, "wave");
+				shockwave.circleBurst(32, 200, 300, 0.5, 1.5, "R", 0, 360, false, "wave");
+				this.thruster.circleBurst(16, 200, 330, 0.8, 1.2, "R", 0, 360, false);
+			}
+
 			this.thruster.emitBox.x = tempX;
 			this.thruster.emitBox.y = tempY;
+
 			this.probeList[i].kill = true;
 		}
 		if (!collidePointRect(this.probeList[i].position, this.levelBoundary))	{

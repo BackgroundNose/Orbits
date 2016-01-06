@@ -95,7 +95,7 @@ Game.prototype.Update = function(delta) {
 	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
 	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager);
-	this.planetManager.Update(delta);
+	this.planetManager.Update(delta, this.probeManager);
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
 			this.transitioning = true;
