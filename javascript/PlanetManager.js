@@ -74,10 +74,11 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 
 	while(num > 0)	{
 		var placed = false;
-		var planetSize = this.minPlanetRadius + Math.random()*(this.maxPlanetRadius-this.minPlanetRadius);
-		var scanSize = planetSize + this.minTargetExtraRadius+(Math.random()*(this.maxTargetExtraRadius-this.minTargetExtraRadius));
+		var planetSize = Math.floor(Math.random()*4.0);
+		var mass = Math.floor(Math.random()*4.0);
+		var scanSize = this.minTargetExtraRadius+(Math.random()*(this.maxTargetExtraRadius-this.minTargetExtraRadius));
 
-		var planet = new Planet(planetSize, scanSize, num);
+		var planet = new Planet(planetSize, mass, scanSize, num);
 
 		while (!placed)	{
 			placed = true;

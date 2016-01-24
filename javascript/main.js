@@ -28,7 +28,7 @@ function mouseUp(event)	{
 
 
 function init()  {
-	DEBUG = false;
+	DEBUG = true;
 	TIMESTEP = 0.015;
 
     canvas = document.getElementById("gameCanvas");
@@ -58,7 +58,7 @@ function init()  {
 	canvas.addEventListener("touchend", touchEnd);
 
 	preload.loadManifest([	
-		{id:"planet", src: "Graphics/Planet2.png"},
+		{id:"planets", src: "Graphics/PlanetArray.png"},
 		{id:"background", src: "Graphics/Background2.png"},
 		{id:"ship", src: "Graphics/Ship2.png"},
 		{id:"probe", src: "Graphics/Probe.png"},

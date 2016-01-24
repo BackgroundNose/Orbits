@@ -1,20 +1,25 @@
-function Planet(rad, targetRad, num)	
+function Planet(size, mass, targetRad, num)	
 {
+    console.log("size: ",size ,mass)
+    console.log(((mass*4)+size).toString())
 	this.sprite =  new createjs.Sprite(
 					new createjs.SpriteSheet({
 						"frames": {
-                            "width": 100,
-                            "height": 100,
-                            "regX": 50,
-                            "regY": 50,
-                            "numFrames": 1
+                            "width": 120,
+                            "height": 120,
+                            "regX": 60,
+                            "regY": 60,
+                            "numFrames": 16
                         },
                         "animations": {
-                            "earth":[0]
+                            "0":[0],"1":[1],"2":[2],"3":[3],
+                            "4":[4],"5":[5],"6":[6],"7":[7],
+                            "8":[8],"9":[9],"10":[10],"11":[11],
+                            "12":[12],"13":[13],"14":[14],"15":[15]
                         },
-                        "images": [preload.getResult("planet")]}) 
+                        "images": [preload.getResult("planets")]}) 
 					);
-	this.sprite.gotoAndStop("earth");
+	this.sprite.gotoAndStop(((mass*4)+size).toString());
 
     this.targetSprite = new createjs.Sprite(
                     new createjs.SpriteSheet({
@@ -32,17 +37,17 @@ function Planet(rad, targetRad, num)
                     );
     this.sprite.gotoAndStop("target");
 
-	this.radius = rad;
-    this.targetRadius = targetRad;
+	this.radius = size*10 + 30;
 
-	this.mass = this.radius*210000;
+    console.log("rad:",this.radius)
+    this.targetRadius = this.radius + targetRad;
+
+	this.mass = (mass*25 + 25)*110000;
 
     this.num = num;
 
     this.position = new Vector(0,0);
 
-	this.sprite.scaleX = rad/50;
-	this.sprite.scaleY = rad/50;
     this.targetSprite.scaleX = targetRad/100;
     this.targetSprite.scaleY = targetRad/100;  
 }
