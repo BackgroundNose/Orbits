@@ -25,7 +25,7 @@ function Game()
 	this.transitionEndTime = 0.75;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
-	this.bkgMoveRate = -7;
+	this.bkgMoveRate = -3;
 
 	this.planetsMoveRate = -4500;
 	this.transitioning = false;
@@ -94,7 +94,7 @@ Game.prototype.Update = function(delta) {
 	this.UI.Update(delta, this.swipe, this.probeManager);
 	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
-	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager);
+	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
 	this.planetManager.Update(delta, this.probeManager);
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
@@ -294,7 +294,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	}	
 	else 	{
 		// Start Phase
-		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
@@ -331,7 +331,7 @@ Game.prototype.setupLevel = function()	{
 		this.nextShipPos = this.planetManager.getShipSpawn(10);
 		console.time("MakeLevel");
 		
-		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.4)	{
+		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.3)	{
 			console.log("Scan Path")
 			var toScan = 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-2));
 			result = this.planetManager.makeScanPath(this.nextShipPos, 2, 5, 15, 
@@ -343,6 +343,7 @@ Game.prototype.setupLevel = function()	{
 				this.planetManager.levelType = "scan";
 				this.planetManager.addTargetGraphics();
 				this.probeManager.setScanRequired(toScan);
+				this.planetManager.resetScanTargets();
 			}
 			
 		}	else 	{
@@ -362,6 +363,4 @@ Game.prototype.setupLevel = function()	{
 Game.prototype.loadFromSave = function(save)	{
 	this.UI.updateText(save.launched, 0, save.passed, save.skipped);
 	this.background.x = save.travelled;
-
-	console.log(save);
 }

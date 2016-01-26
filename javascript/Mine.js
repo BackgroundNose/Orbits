@@ -143,7 +143,7 @@ Mine.prototype.explodeUpdate = function(delta)  {
     }
 }
 
-Mine.prototype.startMineExplosion = function()  {
+Mine.prototype.startMineExplosion = function(hitPos)  {
     this.exploding = true;
 
     this.cont.removeChild(this.cover);
@@ -153,10 +153,12 @@ Mine.prototype.startMineExplosion = function()  {
     var minForce = 40;
     var maxAngVel = 720; //deg per sec
 
+    var hitang = hitPos.seperation(this.position).angleToY();
+
     for (var i = 0; i < this.partVelocities.length; i++)    {
         this.partVelocities[i].x = 0;
         this.partVelocities[i].y = -1;
-        this.partVelocities[i].rotate(Math.random()*360);
+        this.partVelocities[i].rotate(toRad(hitang-45+Math.random()*90));
         this.partVelocities[i].scalarMult(Math.random()*(maxForce-minForce) + minForce);
         var rnd = Math.random()+Math.random() - 1; // [-1,1] gaussian around 0
         this.partAngularVelocities[i] = rnd * maxAngVel;

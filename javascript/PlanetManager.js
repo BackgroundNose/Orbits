@@ -49,8 +49,8 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 		}
 		if (this.mine !== undefined)	{
 			this.dbgShape.graphics.s("#F33");
-			this.dbgShape.graphics.dc(this.mine.sprite.x, 
-								 this.mine.sprite.y, 
+			this.dbgShape.graphics.dc(this.mine.position.x, 
+								 this.mine.position.y, 
 								 this.mine.radius);
 			this.dbgShape.graphics.es();
 		}
@@ -58,6 +58,23 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 
 	if (this.mine !== undefined)	{
 		this.mine.update(delta, probeMan);
+	}	else 	{
+		for (var i = 0; i < this.planetList.length; i++)	{
+			var planet = this.planetList[i];
+			if (planet.scanned)	{
+				planet.scannedElapsed += delta;
+				planet.targetSprite.alpha = Math.max(0.0, 1.0 - planet.scannedElapsed / planet.scannedFade);
+			}	else if (planet.resetting)	{
+				planet.resetElapsed += delta;
+				if (planet.resetElapsed > planet.resetTime)	{
+					planet.resetting = false;
+					planet.resetElapsed = 0;
+					planet.targetSprite.alpha = 1;
+				} 	else 	{
+					planet.targetSprite.alpha = planet.resetElapsed / planet.resetTime;
+				}
+			}
+		}
 	}
 
 	if (this.mine !== undefined && this.mine.kill)	{
@@ -74,8 +91,8 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 
 	while(num > 0)	{
 		var placed = false;
-		var planetSize = Math.floor(Math.random()*4.0);
-		var mass = Math.floor(Math.random()*4.0);
+		var planetSize = Math.floor(Math.random()*3.0 + Math.random()*2.0);
+		var mass = Math.floor(Math.random()*3.0 + Math.random()*2.0);
 		var scanSize = this.minTargetExtraRadius+(Math.random()*(this.maxTargetExtraRadius-this.minTargetExtraRadius));
 
 		var planet = new Planet(planetSize, mass, scanSize, num);
@@ -83,8 +100,8 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 		while (!placed)	{
 			placed = true;
 
-			var pos = new Vector(this.planetBorder.x + Math.random()*(canvas.width-this.planetBorder.x*2),
-								this.planetBorder.y + Math.random()*(canvas.height-this.planetBorder.y*2));
+			var pos = new Vector(Math.floor(this.planetBorder.x + Math.random()*(canvas.width-this.planetBorder.x*2)),
+								Math.floor(this.planetBorder.y + Math.random()*(canvas.height-this.planetBorder.y*2)));
 
 			for (var i = 0; i < this.planetList.length; i++)	{
 				if (collideCircleCircle(pos, planet.radius, this.planetList[i].sprite, this.planetList[i].radius+this.planetExclusionZone))	{
@@ -165,20 +182,37 @@ PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	}
 
 	if (this.mine !== undefined && mineCheck && collideCircleCircle(position, rad, this.mine.position, this.mine.radius))	{
-		this.mine.startMineExplosion();
+		this.mine.startMineExplosion(position);
 		return this.mine;
 	}
 	return undefined;
 }
 
-PlanetManager.prototype.checkScans = function(position, rad, emit)	{
+PlanetManager.prototype.checkScans = function(position, rad, hide)	{
 	var out = new Array();
 	for (var i = 0; i < this.planetList.length; i++)	{
 		if (collideCircleCircle(position, rad, this.planetList[i].sprite, this.planetList[i].targetRadius))	{
 			out.push(this.planetList[i].num);
+			if (hide)	{
+				this.planetList[i].scanned = true;
+			}
 		}
 	}
 	return out;
+}
+
+PlanetManager.prototype.resetScanTargets = function()	{
+	for (var i = 0; i < this.planetList.length; i++)	{
+		if (this.planetList[i].scanned)	{
+			this.planetList[i].resetting = true;
+			this.planetList[i].resetElapsed = this.planetList[i].resetTime*(1.0-Math.min(1.0,this.planetList[i].scannedElapsed / this.planetList[i].scannedFade));
+
+			this.planetList[i].scanned = false;
+			this.planetList[i].scannedElapsed = 0;
+	
+			
+		}
+	}
 }
 
 PlanetManager.prototype.integratePath = function(sPos, sVel, objRad, maxt, record)	{

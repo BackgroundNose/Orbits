@@ -1,7 +1,5 @@
 function Planet(size, mass, targetRad, num)	
 {
-    console.log("size: ",size ,mass)
-    console.log(((mass*4)+size).toString())
 	this.sprite =  new createjs.Sprite(
 					new createjs.SpriteSheet({
 						"frames": {
@@ -19,7 +17,7 @@ function Planet(size, mass, targetRad, num)
                         },
                         "images": [preload.getResult("planets")]}) 
 					);
-	this.sprite.gotoAndStop(((mass*4)+size).toString());
+	this.sprite.gotoAndStop((mass*4)+size);
 
     this.targetSprite = new createjs.Sprite(
                     new createjs.SpriteSheet({
@@ -37,19 +35,25 @@ function Planet(size, mass, targetRad, num)
                     );
     this.sprite.gotoAndStop("target");
 
-	this.radius = size*10 + 30;
-
-    console.log("rad:",this.radius)
+	this.radius = size*10 + 20;
     this.targetRadius = this.radius + targetRad;
 
-	this.mass = (mass*25 + 25)*110000;
+	this.mass = ((mass+1)*20 + (size+1))*255000;
 
     this.num = num;
 
     this.position = new Vector(0,0);
 
-    this.targetSprite.scaleX = targetRad/100;
-    this.targetSprite.scaleY = targetRad/100;  
+    this.targetSprite.scaleX = this.targetRadius/100;
+    this.targetSprite.scaleY = this.targetRadius/100;
+
+    this.scanned = false;
+    this.scannedElapsed = 0;
+    this.scannedFade = 0.25;
+
+    this.resetting = false;
+    this.resetElapsed = 0;
+    this.resetTime = 1.0;
 }
 
 Planet.prototype.moveTo = function(pos) {

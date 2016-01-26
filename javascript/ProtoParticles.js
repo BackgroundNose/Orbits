@@ -92,13 +92,15 @@ function ProtoParticles()
 			this.dead = true;
 		}
 
-		this.sprite.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
+		this.sprite.alpha = 0;//1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
 		this.shape.alpha = 1-(Math.max(this.elapsed-this.startFade,0)/(this.ttl-this.startFade));
 	}
 	var gravPlanetFade = function(delta)	{
 		this.parentEmitter.args[0].getTotalAttractionVector(this.worldPosition, this.force);
 		if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) !== undefined)	{
 			this.dead = true;
+			this.sprite.alpha = 0;
+			return
 		}
 		this.velocity.x += this.force.x * delta;
 		this.velocity.y += this.force.y * delta;
