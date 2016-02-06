@@ -148,6 +148,7 @@ Emitter.prototype.emit = function(toEmit)
 		this.particleList[emitIDX].moveFunction = this.particlePrototype.moveFunction;
 		this.particleList[emitIDX].elapsed = 0;
 		this.particleList[emitIDX].randomFrame = this.particlePrototype.randomFrame;
+		this.particleList[emitIDX].randomRotation = this.particlePrototype.randomRotation;
 		this.particleList[emitIDX].phase = 0; 
 
 
@@ -155,6 +156,10 @@ Emitter.prototype.emit = function(toEmit)
 			this.particleList[emitIDX].setToRandomAnimation();
 		}   else if (this.particleList[emitIDX].randomFrame)	{
 			this.particleList[emitIDX].setToRandomFrame();
+		}
+
+		if (this.particleList[emitIDX].randomRotation)	{
+			this.particleList[emitIDX].setToRandomRotation();
 		}
 
 		if (!this.particleList[emitIDX].onStage)
@@ -205,6 +210,10 @@ Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, s
 			this.particleList[emitIDX].setToRandomFrame();
 		}	else {
 			this.particleList[emitIDX].sprite.stop();
+		}
+
+		if (this.particleList[emitIDX].randomRotation)	{
+			this.particleList[emitIDX].setToRandomRotation();
 		}
 		if (animation !== undefined)	{
 			this.particleList[emitIDX].sprite.gotoAndPlay(animation);
@@ -259,8 +268,7 @@ Emitter.prototype.shiftAllParticles = function(shift)	{
 	}
 }
 
-Emitter.prototype.setRandomEmit = function(min, max)
-{
+Emitter.prototype.setRandomEmit = function(min, max)	{
 	this.emitRateMin = min;
 	this.emitRateMax = max;
 }

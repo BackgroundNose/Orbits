@@ -101,10 +101,9 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 	{
 		case "dustCloud":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.subStage, this.protoParticles.dustCloud.clone(),
-											8, 64, 8, vectorLow, vectorHi, -1));
+											8, 64, 16, vectorLow, vectorHi, -1));
 			this.emitterList[this.emitterList.length-1].particlePrototype.ttl = 10;
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
-			this.emitterList[this.emitterList.length-1].setRandomEmit(2.0,5.1);
 			return this.emitterList[this.emitterList.length-1];
 		case "dustCloudTrail":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.subStage, this.protoParticles.dustCloudTrail.clone(),
@@ -112,16 +111,18 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 			this.emitterList[this.emitterList.length-1].particlePrototype.ttl = 5;
 			return this.emitterList[this.emitterList.length-1];
 		case "fuse":
-			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.spark, 
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.subStage, this.protoParticles.spark, 
                       35, 64, -1, new Vector(-15,-15), new Vector(25, -95), -1));
 			this.emitterList[this.emitterList.length-1].setRandomEmit(0.15,0.2);
 			this.emitterList[this.emitterList.length-1].canEmit = false;
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
+			this.emitterList[this.emitterList.length-1].args.push(1.0);
 			return this.emitterList[this.emitterList.length-1];
 		case "sSmokePuff":
-			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.exploCloud,
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.subStage, this.protoParticles.exploCloud,
 											1,256,-1, new Vector(-15,-15), new Vector(25, -95), -1));
 			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
+			this.emitterList[this.emitterList.length-1].args.push(1.0);
 			return this.emitterList[this.emitterList.length-1];
 		case "scan":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.scan,
@@ -137,6 +138,23 @@ ParticleManager.prototype.addEmitterByType = function(type, emitBox, vectorLow, 
 		case "shockwave":
 			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.shockwave,
 											0, 256, 0, new Vector(0,0), new Vector(0,0), 0.1));
+			return this.emitterList[this.emitterList.length-1];
+		case "warp":
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.subStage, this.protoParticles.warp,
+											32, 256, -1, vectorLow, vectorHi, -1));
+			this.emitterList[this.emitterList.length-1].basettl = this.emitterList[this.emitterList.length-1].particlePrototype.ttl;
+			return this.emitterList[this.emitterList.length-1];
+		case "superWarp":
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.warp,
+											32, 42, -1, vectorLow, vectorHi, -1));
+			this.emitterList[this.emitterList.length-1].basettl = this.emitterList[this.emitterList.length-1].particlePrototype.ttl;
+			return this.emitterList[this.emitterList.length-1];
+		case "gravWarp":
+			this.emitterList.push(new Emitter(type+this.getEID().toString(), emitBox, this.superStage, this.protoParticles.gravWarp,
+											1, 256, -1, vectorLow, vectorHi, -1));
+			this.emitterList[this.emitterList.length-1].basettl = this.emitterList[this.emitterList.length-1].particlePrototype.ttl;
+			this.emitterList[this.emitterList.length-1].args.push(additionals.pm);
+			this.emitterList[this.emitterList.length-1].args.push(0.1);
 			return this.emitterList[this.emitterList.length-1];
 		default:
 			console.log("Unknown particle type!: ",type);

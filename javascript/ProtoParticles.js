@@ -97,6 +97,7 @@ function ProtoParticles()
 	}
 	var gravPlanetFade = function(delta)	{
 		this.parentEmitter.args[0].getTotalAttractionVector(this.worldPosition, this.force);
+		this.force.scalarMult(this.parentEmitter.args[1]);
 		if (this.parentEmitter.args[0].checkCollisions(this.worldPosition, 1, false) !== undefined)	{
 			this.dead = true;
 			this.sprite.alpha = 0;
@@ -181,8 +182,8 @@ function ProtoParticles()
 	                    new Vector(0,0),
 						linMoveNoPhysFade,
 
-						5.0, undefined, false, false);
-	this.dustCloud.startFade = 4;
+						5.0, undefined, false, false, false);
+	this.dustCloud.startFade = 3.5;
 	this.dustCloudTrail = new Particle( new createjs.SpriteSheet({
                         "frames":
                         {
@@ -199,8 +200,9 @@ function ProtoParticles()
                         "images": [preload.getResult("pwhitePx")]}),
 	                    new Vector(0,0),
 						shapeLineBetween,
-						1.0, undefined, false, false);
+						1.0, undefined, false, false, false);
 	this.dustCloudTrail.shape = new createjs.Shape();
+
 
 	var fr = 0.15;
 	this.exploCloud = new Particle( new createjs.SpriteSheet({
@@ -211,7 +213,7 @@ function ProtoParticles()
 							regX: 2,
 							regY: 2
 						},
-						animations: {
+						"animations": {
                             a0:[0,9,"end",fr],a1:[10,19,"end",fr],a2:[20,29,"end",fr],a3:[30,39,"end",fr],
                             a4:[40,49,"end",fr],a5:[50,59,"end",fr],a6:[60,69,"end",fr],a7:[70,79,"end",fr],
                             a8:[80,89,"end",fr],a9:[90,99,"end",fr],end:[9]
@@ -219,7 +221,7 @@ function ProtoParticles()
 						"images": [preload.getResult("pCloud")]}),
 						new Vector(0,0),
 						gravPlanetFade,
-						7.5, undefined, false, true);
+						7.5, undefined, false, true, false);
 	this.exploCloud.startFade = 5.75;
 	fr = 0.55;
 	this.spark = new Particle( new createjs.SpriteSheet({
@@ -230,7 +232,7 @@ function ProtoParticles()
 							regX: 2,
 							regY: 2
 						},
-						animations: {
+						"animations": {
                             a0:[0,9,"end",fr],a1:[10,19,"end",fr],a2:[20,29,"end",fr],a3:[30,39,"end",fr],
                             a4:[40,49,"end",fr],a5:[50,59,"end",fr],a6:[60,69,"end",fr],a7:[70,79,"end",fr],
                             a8:[80,89,"end",fr],a9:[90,99,"end",fr],end:[9]
@@ -238,7 +240,7 @@ function ProtoParticles()
 						"images": [preload.getResult("pCloud")]}),
 						new Vector(0,0),
 						gravPlanetFade,
-						0.5, undefined, false, true);
+						0.5, undefined, false, true, false);
 	this.spark.startFade = 0.25;
 
 	this.scan = new Particle( new createjs.SpriteSheet({
@@ -249,7 +251,7 @@ function ProtoParticles()
 							regX: 4.5,
 							regY: 4.5
 						},
-						animations: {
+						"animations": {
                             a0:[0],a1:[1],a2:[2],a3:[3],
                             a4:[4],a5:[5],a6:[6],a7:[7],
                             a8:[8],a9:[9]
@@ -257,7 +259,7 @@ function ProtoParticles()
 						"images": [preload.getResult("pGreenPix")]}),
 						new Vector(0,0),
 						scanMove,
-						100, undefined, false, true);
+						100, undefined, false, true, false);
 
 	this.bits = new Particle( new createjs.SpriteSheet({
 		"frames":
@@ -267,7 +269,7 @@ function ProtoParticles()
 			regX: 1,
 			regY: 1
 		},
-		animations:{
+		"animations":{
   			a0:[0],a1:[1],a2:[2],a3:[3],
             a4:[4],a5:[5],a6:[6],a7:[7],
             a8:[8],a9:[9]
@@ -275,7 +277,7 @@ function ProtoParticles()
 		"images":[preload.getResult("pBits")]}),
 		new Vector(0, 0),
 		gravPlanetFade,
-		2, undefined, true, false);
+		2, undefined, true, false, false);
 	this.bits.startFade = 1.5;
 
 	this.shockwave = new Particle( new createjs.SpriteSheet({
@@ -286,12 +288,49 @@ function ProtoParticles()
 			regX: 5,
 			regY: 5
 		},
-		animations:{
+		"animations":{
 			wave:[0,9,"end",0.75], end:[9,9,"end",0.5]
 		},
 		"images":[preload.getResult("pShock")]}),
 		new Vector(0,0),
 		linMoveNoPhysFade,
-		0.4, undefined, false, false);
-	this.bits.startFade = 0.15;
+		0.4, undefined, false, false, false);
+
+	this.warp = new Particle( new createjs.SpriteSheet({
+		"frames":
+		{	
+			width: 10,
+			height: 9,
+			regX: 5,
+			regY: 4.5
+		},
+		"animations": {
+			"1":[0],
+			"2":[1],
+			"3":[2],
+			"4":[3]
+		},
+		"images": [preload.getResult("shipWarp")]
+		}),
+		new Vector(0,0),
+		linMoveNoPhysFade,
+		0.7, undefined, true, false, false);
+
+	this.gravWarp = new Particle( new createjs.SpriteSheet({
+		"frames":
+		{	
+			width: 2,
+			height: 2,
+			regX: 1,
+			regY: 1
+		},
+		"animations": {
+			"1":[0]
+		},
+		"images": [preload.getResult("grav")]
+		}),
+		new Vector(0,0),
+		gravPlanetFade,
+		2.5, undefined, true, false, true);
+	this.gravWarp.alpha = 0.1;
 }	

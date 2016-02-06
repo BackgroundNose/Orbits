@@ -28,7 +28,7 @@ function mouseUp(event)	{
 
 
 function init()  {
-	DEBUG = true;
+	DEBUG = false;
 	TIMESTEP = 0.015;
 
     canvas = document.getElementById("gameCanvas");
@@ -60,7 +60,7 @@ function init()  {
 	preload.loadManifest([	
 		{id:"planets", src: "Graphics/PlanetArray.png"},
 		{id:"background", src: "Graphics/Background2.png"},
-		{id:"ship", src: "Graphics/Ship2.png"},
+		{id:"ship", src: "Graphics/Ship4.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
 		{id:"mine", src: "Graphics/MineParts.png"},
 		{id:"target", src: "Graphics/ScanTarget.png"},
@@ -79,7 +79,10 @@ function init()  {
 		{id:"pBits", src: "Graphics/Particles/Bits.png"},
 		{id:"pShock", src: "Graphics/Particles/Shockwave.png"},
 		{id:"mineLight", src: "Graphics/MineLight.png"},
-		{id:"mineCover", src: "Graphics/MineCover.png"}
+		{id:"mineCover", src: "Graphics/MineCover.png"},
+		{id:"shipWarp", src: "Graphics/Particles/ShipWarp.png"},
+		{id:"shield", src: "Graphics/Grav.png"},
+		{id:"grav", src: "Graphics/Particles/Grav.png"},
 				]);
 	
 	bar.stage.update();

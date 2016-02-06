@@ -2,14 +2,19 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager, level
 {
 	this.puffEmitter = particleManager.addEmitterByType("sSmokePuff", new createjs.Rectangle(0, 0, 1,1), undefined,
 								undefined, {pm:planetManager});
+	this.puffEmitter.canEmit = false;
 	this.thruster = particleManager.addEmitterByType("fuse", new createjs.Rectangle(0, 0, 1,1), undefined,
 								undefined, {pm:planetManager});
+	this.gravPart = particleManager.addEmitterByType("gravWarp", new createjs.Rectangle(0, 0, 30,30), new Vector(0,0),
+								new Vector(0,0), {pm:planetManager});
+	this.gravPart.setRandomEmit(0.2,1.0);
+	this.gravPart.canEmit = false;
 	this.scanBurst = particleManager.addEmitterByType("scan", new createjs.Rectangle(0, 0, 1, 1),
 		new Vector(0,0), new Vector(0,0), {pm:planetManager, probes:this})
 
 	this.planetManagerRef = planetManager;
 
-	this.puffEmitter.canEmit = false;
+	
 	this.stage = new createjs.Container();
 	this.probeList = new Array();
 	this.dbgShape = new createjs.Shape();
@@ -47,17 +52,20 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 			var force = new Vector(0,0);
 			planetManager.getTotalAttractionVector(this.probeList[i].position, force);
 			this.probeList[i].addForce(force);
-			this.probeList[i].Update(delta);
+			
 		}
+
+		this.probeList[i].Update(delta);
 
 		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
 		if (hit !== undefined)	{
 			if (!transition)	{
-				var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(lastPos.x,lastPos.y,1,1), 
+				var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(this.probeList[i].position.x,this.probeList[i].position.y,1,1), 
 					new Vector(0,0), new Vector(0,0), undefined);
 				shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
 				shockwave.circleBurst(12, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
 				
+				// here we reuse the thruster emitter. We will make a backup of the box position
 				var tempX = this.thruster.emitBox.x;
 				var tempY = this.thruster.emitBox.y;
 				this.thruster.emitBox.x = lastPos.x;
@@ -65,7 +73,6 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 				this.thruster.circleBurst(32, 250, 530, 0.8, 1.2, "R", 0, 360, false);
 				
 				if (hit === planetManager.mine)	{
-					console.log("here")
 					shockwave.emitBox.x = hit.position.x;
 					shockwave.emitBox.y = hit.position.y;
 					this.thruster.emitBox.x = hit.position.x;
@@ -75,6 +82,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 					this.thruster.circleBurst(16, 200, 330, 0.8, 1.2, "R", 0, 360, false);
 				}
 
+				// and restore the backup.
 				this.thruster.emitBox.x = tempX;
 				this.thruster.emitBox.y = tempY;
 			}
@@ -86,7 +94,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		if (planetManager.levelType == "scan")	{
 			var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius, true);
 			for (var s = 0; s < scanReturn.length; s++)	{
-				if (!contains(this.probeList[i].scannedList, scanReturn[s]))	{
+				if (!contains(this.probeList[i].scannedList, scanReturn[s]) && !transition)	{
 					this.scanBurst.moveBoxTo(this.probeList[i].position);
 					this.scanBurst.circleBurst(this.piecesPerScan, 160, 160, 1.0, 1.0, "A", 0, 0, true);
 					this.probeList[i].scannedList.push(scanReturn[s]);
@@ -105,6 +113,8 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 	for (var i = 0; i < this.probeList.length; i++)	{
 		if (this.probeList[i].kill)	{
 			this.stage.removeChild(this.probeList[i].sprite);
+			this.stage.removeChild(this.probeList[i].field);
+			this.stage.removeChild(this.probeList[i].trail);
 			this.probeList.splice(i,1);
 			planetManager.resetScanTargets();
 			if (this.piecesCollected < this.piecesRequired) {
@@ -119,21 +129,28 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 ProbeManager.prototype.clearStuff = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
 		this.stage.removeChild(this.probeList[i].sprite);
+		this.stage.removeChild(this.probeList[i].field);
+		this.stage.removeChild(this.probeList[i].trail);
 	}
 	this.probeList.length = 0;
 }
 
 
-ProbeManager.prototype.spawnProbe = function(position, angle, power, pm) {
+ProbeManager.prototype.spawnProbe = function(position, angle, power, pm, UI) {
 	if ( this.probeList.length > 0)	{
 		this.refireProbe(angle, power);
 		return;
 	}
-	var probe = new Probe(this.scansRequired);
-	probe.moveTo(position);
+
+	UI.updateText(0, 1, 0, 0);
+
+	var probe = new Probe(this.scansRequired, position);
 	this.probeList.push(probe);
 	this.pushProbe(this.probeList.length-1, angle, power);	
+	this.stage.addChild(probe.trail);
 	this.stage.addChild(probe.sprite);
+	this.stage.addChild(probe.field);
+
 
 	var smokeVec = new Vector(0,-1);
 
@@ -163,6 +180,7 @@ ProbeManager.prototype.refireProbe = function(angle, power)	{
 		this.puffEmitter.moveBoxTo(this.probeList[0].position);
 		this.puffEmitter.directedBurst(
 				power*this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
+		this.gravPart.canEmit = false;
 		this.pushProbe(0, angle, power);
 	}
 	return;
@@ -182,21 +200,25 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 	this.planetManagerRef.getTotalAttractionVector(this.probeList[0].position, vec);
 	vec.normalise();
 
-	this.puffEmitter.moveBoxTo(this.probeList[0].position);
+	// this.puffEmitter.moveBoxTo(this.probeList[0].position);
 	this.puffEmitter.directedBurst(
 				Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),20,
 				0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
 				0.5,1.0,"N",-0,0,true);
 	
-	this.thruster.moveBoxTo(this.probeList[0].position);
-	vec.rotate(toRad(-5));
-	this.thruster.emitVelocityLow = vec.outScalarMult(5);
-	vec.rotate(toRad(10));
-	this.thruster.emitVelocityHigh = vec.outScalarMult(100);
+	this.gravPart.moveBoxTo(new Vector(this.probeList[0].position.x - this.gravPart.emitBox.width/2.0, this.probeList[0].position.y- this.gravPart.emitBox.height/2.0 ));
+	this.gravPart.directedBurst(
+				Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),36,
+				0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
+				0.5,1.0,"N",-0,0,true);
+	// vec.rotate(toRad(-5));
+	this.gravPart.emitVelocityLow = vec.outScalarMult(5);
+	// vec.rotate(toRad(10));
+	this.gravPart.emitVelocityHigh = vec.outScalarMult(100);
 	
-	this.thruster.canEmit = true;
+	this.gravPart.canEmit = true;
 
-	this.probeList[0].stopAndWait();
+	this.probeList[0].stopAndWait(vec.rotate(toRad(-5)));
 }
 
 ProbeManager.prototype.pushProbe = function(idx, angle, power)	{

@@ -18,7 +18,7 @@ function Game()
 
 	this.planetManager = new PlanetManager(this.particleManager);
 
-	this.ship = new Ship();
+	this.ship = new Ship(this.particleManager);
 
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
@@ -78,9 +78,8 @@ Game.prototype.Update = function(delta) {
 			var launchVec = this.swipe.swipeVec;
 			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
 			this.probeManager.spawnProbe(this.ship.worldPosition, toDeg(angleToY(launchVec)), 
-											power, this.planetManager);
+											power, this.planetManager, this.UI);
 
-			this.UI.updateText( 0, 1, 0, 0);
 			var out = this.planetManager.integratePath(this.probeManager.probeList[this.probeManager.probeList.length-1].position, 
 											this.probeManager.probeList[this.probeManager.probeList.length-1].velocity,
 											2,300, true);
@@ -166,9 +165,11 @@ Game.prototype.setStage = function()	{
 	this.stage.addChild(this.background);
 	this.scaledStage.addChild(this.particleManager.subStage);
 	this.scaledStage.addChild(this.planetManager.stage);
+	this.scaledStage.addChild(this.ship.wingTips);
 	this.scaledStage.addChild(this.ship.sprite);
 	this.scaledStage.addChild(this.probeManager.stage);
 	this.scaledStage.addChild(this.particleManager.superStage);
+
 
 	this.stage.addChild(this.scaledStage);
 
@@ -190,6 +191,16 @@ Game.prototype.updateDustEmitters = function(screenRect)	{
 	this.dustEmitterTop.emitBox.width = this.dustEmitterBottom.emitBox.width = screenRect.width + 20;
 	this.dustEmitterTop.emitBox.y = screenRect.y - 10;
 	this.dustEmitterBottom.emitBox.y = screenRect.y + screenRect.height;
+
+	// this.dustEmitter.emitBox.x = screenRect.x;
+	// this.dustEmitter.emitBox.width = screenRect.width;
+	// this.dustEmitter.emitBox.y = screenRect.y;
+	// this.dustEmitter.emitBox.height = screenRect.height;
+	var rate = 1/((screenRect.width*screenRect.height)/(canvas.width*canvas.height));
+	this.dustEmitterRight.setRandomEmit(this.dustRateLow*rate,this.dustRateHigh*rate);
+	this.dustEmitterLeft.setRandomEmit(this.dustRateLow*rate,this.dustRateHigh*rate);
+	this.dustEmitterTop.setRandomEmit(this.dustRateLow*rate,this.dustRateHigh*rate);
+	this.dustEmitterBottom.setRandomEmit(this.dustRateLow*rate,this.dustRateHigh*rate);
 }
 
 Game.prototype.setupParticles = function()	{
@@ -201,6 +212,15 @@ Game.prototype.setupParticles = function()	{
 										  new Vector(10, -50), new Vector(100, 50), {pm:this.planetManager});
 	this.dustEmitterBottom = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(0, canvas.height, canvas.width, 10),
 										  new Vector(-50, -100), new Vector(50, -10), {pm:this.planetManager});
+	// this.dustEmitter = this.particleManager.addEmitterByType("dustCloud", new createjs.Rectangle(0, 0, canvas.width, canvas.height),
+	// 									  new Vector(-100, -100), new Vector(100, 100), {pm:this.planetManager});
+	this.dustRateLow = 3.0;
+	this.dustRateHigh = 6.5;
+	this.dustEmitterRight.setRandomEmit(this.dustRateLow,this.dustRateHigh);
+	this.dustEmitterTop.setRandomEmit(this.dustRateLow,this.dustRateHigh);
+	this.dustEmitterLeft.setRandomEmit(this.dustRateLow,this.dustRateHigh);
+	this.dustEmitterBottom.setRandomEmit(this.dustRateLow,this.dustRateHigh);
+
 	this.dustEmitterTrail = this.particleManager.addEmitterByType("dustCloudTrail", new createjs.Rectangle(canvas.width, 0, 10, canvas.height),
 										  new Vector(-100, -100), new Vector(-10, 100));
 	this.dustEmitterTrail.canEmit = false;
@@ -214,7 +234,9 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	this.dustEmitterTop.canEmit = false;
 	this.dustEmitterLeft.canEmit = false;
 	this.dustEmitterBottom.canEmit = false;
+	// this.dustEmitter.canEmit = false;
 	this.dustEmitterTrail.canEmit = true;
+
 
 	if (this.transitionElapsed >= this.transitionTotalTime)	{
 		this.transitioning = false;
@@ -236,12 +258,18 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.dustEmitterTop.canEmit = true;
 		this.dustEmitterLeft.canEmit = true;
 		this.dustEmitterBottom.canEmit = true;
+		// this.dustEmitter.canEmit = true;
 		this.dustEmitterTrail.canEmit = false;
 
 		this.UI.scanBar.aplha = 1.0;
 		if (this.planetManager.levelType == "mine")	{
 			this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
 		}
+
+		this.ship.warpEmitterSub.canEmit = false;
+		this.ship.warpEmitterSuper.canEmit = false;
+		this.ship.sprite.gotoAndStop("player");
+		this.ship.wingTips.graphics.clear();
 
 		this.probeManager.scanBurst.canEmit = true;
 
@@ -254,10 +282,16 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	if (this.transitionElapsed >= this.transitionMidTime + this.transitionStartTime)	{
 		// Last Phase
 		this.ship.moveTo(this.nextShipPos);
+
 		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionEndTime);
 		var shiftTo = lerp(canvas.width, 0, mu);
 		var diff = shiftTo - this.planetManager.stage.x;
 		// var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
+
+		this.ship.drawTips(1.0-mu);
+		this.ship.warpEmitterSub.particlePrototype.ttl = this.ship.warpEmitterSub.basettl*(1-mu);
+		this.ship.warpEmitterSuper.particlePrototype.ttl = this.ship.warpEmitterSuper.basettl*(1-mu);
+
 		this.planetManager.stage.x = shiftTo;
 		this.probeManager.stage.x = shiftTo;
 
@@ -287,10 +321,16 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		this.probeManager.stage.x += diff;
 		var mu = (this.transitionElapsed-this.transitionStartTime) / (this.transitionMidTime);
-		this.ship.moveTo(new Vector(
-				cosineInterpolate(this.lastShipPos.x, this.nextShipPos.x, mu),
-				cosineInterpolate(this.lastShipPos.y, this.nextShipPos.y, mu)
-			));
+		var shipDX = cosineInterpolate(this.lastShipPos.x, this.nextShipPos.x, mu);
+		var shipDY = cosineInterpolate(this.lastShipPos.y, this.nextShipPos.y, mu);
+		var partDX = shipDX - this.ship.worldPosition.x;
+		var partDY = shipDY - this.ship.worldPosition.y;
+		this.ship.moveTo(new Vector(shipDX, shipDY));
+		this.ship.warpEmitterSub.shiftAllParticles(new Vector(partDX, partDY));
+		this.ship.warpEmitterSuper.shiftAllParticles(new Vector(partDX, partDY));
+		this.ship.warpEmitterSub.particlePrototype.ttl = this.ship.warpEmitterSub.basettl;
+		this.ship.warpEmitterSuper.particlePrototype.ttl = this.ship.warpEmitterSuper.basettl;
+		this.ship.drawTips(1.0);
 	}	
 	else 	{
 		// Start Phase
@@ -301,16 +341,27 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.UI.scanBar.alpha = lerp(this.UI.scanBar.alpha, 0, mu);
 		this.planetManager.stage.x += diff;
 		this.probeManager.stage.x += diff;
+		this.probeManager.gravPart.canEmit = false;
 
 		this.scaledStage.x = lerp(this.scaledStage.x, 0, mu);
 		this.scaledStage.y = lerp(this.scaledStage.y, 0, mu);
 		this.scaledStage.scaleX = lerp(this.scaledStage.scaleX, 1, mu);
 		this.scaledStage.scaleY = lerp(this.scaledStage.scaleY, 1, mu);
+
+		this.ship.warpEmitterSub.canEmit = true;
+		this.ship.warpEmitterSuper.canEmit = true;
+		this.ship.warpEmitterSub.particlePrototype.ttl = this.ship.warpEmitterSub.basettl*mu;
+		this.ship.warpEmitterSuper.particlePrototype.ttl = this.ship.warpEmitterSuper.baseRate/mu;
+		this.ship.drawTips(Math.min(1.0, mu));
+		this.ship.sprite.gotoAndStop("warping");
+
 	}
 
 	this.background.x += globalMove;
 
 	this.particleManager.shiftAllParticles(new Vector(diff, 0));
+	this.ship.warpEmitterSub.shiftAllParticles(new Vector(-diff, 0));
+	this.ship.warpEmitterSuper.shiftAllParticles(new Vector(-diff, 0));
 	this.probeManager.thruster.moveBy({x:diff, y:0});
 	this.particleManager.update(delta, this.probeManager.camRect);
 	this.UI.Update(delta, this.swipe, this.probeManager);

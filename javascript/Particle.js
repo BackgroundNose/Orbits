@@ -1,4 +1,4 @@
-function Particle(sheet, velocity, moveFunction, ttl, parentEmitter, randFrame, randomAnimation)
+function Particle(sheet, velocity, moveFunction, ttl, parentEmitter, randFrame, randomAnimation, randomRotation)
 {
 	this.sprite 		= new createjs.Sprite(sheet, "I");
 	this.worldPosition 	= new Vector(0,0);
@@ -19,12 +19,17 @@ function Particle(sheet, velocity, moveFunction, ttl, parentEmitter, randFrame, 
 	this.phase 			= 0;	// Allows the particle to move through behaviours
 
 	this.randomFrame = randFrame;
-
 	this.randomAnimation = randomAnimation;
+	this.randomRotation = randomRotation;
+
 	if (this.randomAnimation)	{
 		this.setToRandomAnimation();
 	} 	else if (this.randomFrame)	{
 		this.setToRandomFrame();
+	}
+
+	if (this.randomRotation)	{
+		this.setToRandomRotation();
 	}
 
 	this.scale = 1;
@@ -63,6 +68,9 @@ Particle.prototype.clone = function()
 		out.setToRandomAnimation();
 	}	else if (this.randomFrame)	{
 		out.setToRandomFrame();
+	}	
+	if (this.randomRotation)	{
+		out.setToRandomRotation();
 	}
 
 	return out;
@@ -75,6 +83,10 @@ Particle.prototype.setToRandomFrame = function()	{
 Particle.prototype.setToRandomAnimation = function()	{
 	var anim = this.sprite.spriteSheet.animations[Math.floor(Math.random()*this.sprite.spriteSheet.animations.length)];
 	this.sprite.gotoAndPlay(anim);
+}
+
+Particle.prototype.setToRandomRotation = function()	{
+	this.sprite.rotation = 360*Math.random();		
 }
 
 Particle.prototype.moveBy = function(shift)	{
