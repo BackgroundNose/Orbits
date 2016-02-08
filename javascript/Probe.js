@@ -88,7 +88,7 @@ Probe.prototype.Update = function(delta)	{
 	this.drawTrail();
 
 	if (!this.experienceGravity)	{
-		this.field.alpha = cosineInterpolate(0.2, 0.7, this.fieldElapsed / this.fieldRate);
+		this.field.alpha = cosineInterpolate(0.3, 0.7, this.fieldElapsed / this.fieldRate);
 		this.field.rotation = this.sprite.rotation;
 	}	else 	{
 		this.field.alpha = 0;

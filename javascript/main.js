@@ -58,7 +58,7 @@ function init()  {
 	canvas.addEventListener("touchend", touchEnd);
 
 	preload.loadManifest([	
-		{id:"planets", src: "Graphics/PlanetArray.png"},
+		{id:"planets", src: "Graphics/PlanetArray2.png"},
 		{id:"background", src: "Graphics/Background2.png"},
 		{id:"ship", src: "Graphics/Ship4.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
