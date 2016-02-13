@@ -285,7 +285,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.moveTo(this.nextShipPos);
 
 		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionEndTime);
-		var shiftTo = lerp(canvas.width, 0, mu);
+		var shiftTo = lerp(canvas.width+10, 0, mu);
 		var diff = shiftTo - this.planetManager.stage.x;
 		// var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
 
@@ -309,7 +309,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 			this.probeManager.puffEmitter.killAll();
 			this.probeManager.thruster.killAll();
 			this.probeManager.thruster.canEmit = false;
-			this.planetManager.stage.x = canvas.width;
+			this.planetManager.stage.x = canvas.width+10;
 			this.setupLevel();
 			this.nextLevelMade = true;
 			this.probeManager.scanBurst.canEmit = false;

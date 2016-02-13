@@ -25,7 +25,7 @@ function Background(totalRect)	{
 	this.overStage = new createjs.Container();
 	this.stage.addChild(this.overStage);
 
-	this.moveRate = -80;
+	this.moveRate = -150;
 }
 
 Background.prototype.shiftThings = function(delta)	{
@@ -68,7 +68,7 @@ Background.prototype.newStar = function(init)	{
 		if (init)	{
 			sp.x = Math.random()*(canvas.width+200);
 		}	else	{
-			sp.x = Math.random()*200 + canvas.width;
+			sp.x = Math.random()*100 + canvas.width+100;
 		}
 		sp.y = Math.random()*canvas.height;
 
