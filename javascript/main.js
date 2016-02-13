@@ -32,6 +32,7 @@ function init()  {
 	TIMESTEP = 0.015;
 
     canvas = document.getElementById("gameCanvas");
+    document.getElementById("gameCanvas").style.background = '#000000';
 	createjs.Ticker.setFPS(60);
 	createjs.Ticker.timingMode = createjs.Ticker.RAF;
 
@@ -43,7 +44,7 @@ function init()  {
 		canSave = false;
 	}
 
-	bar = new LoadingBar( 400, 40, 5, "grey", "black");
+	bar = new LoadingBar( 400, 40, 5, "grey", "white");
 	preload = new createjs.LoadQueue(false);
 
 	preload.addEventListener("complete", handleComplete);
@@ -59,7 +60,7 @@ function init()  {
 
 	preload.loadManifest([	
 		{id:"planets", src: "Graphics/PlanetArray2.png"},
-		{id:"background", src: "Graphics/Background2.png"},
+		{id:"background", src: "Graphics/Background.png"},
 		{id:"ship", src: "Graphics/Ship4.png"},
 		{id:"probe", src: "Graphics/Probe.png"},
 		{id:"mine", src: "Graphics/MineParts.png"},
@@ -83,6 +84,7 @@ function init()  {
 		{id:"shipWarp", src: "Graphics/Particles/ShipWarp.png"},
 		{id:"shield", src: "Graphics/Grav.png"},
 		{id:"grav", src: "Graphics/Particles/Grav.png"},
+		{id:"stars", src: "Graphics/Stars.png"},
 				]);
 	
 	bar.stage.update();

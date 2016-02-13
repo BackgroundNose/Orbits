@@ -12,7 +12,10 @@ function Game()
 
 	this.screenRect = new createjs.Rectangle(0, 0, canvas.width, canvas.height);
 
-	this.background = new createjs.Bitmap(preload.getResult("background"));
+	
+
+	this.backgroundManager = new Background(new createjs.Rectangle(-this.maxExtraHor, -this.maxExtraVert, canvas.width*3, canvas.height*3));
+	this.backgroundManager.spawnInitialStars();
 
 	this.particleManager = new ParticleManager();
 
@@ -25,7 +28,6 @@ function Game()
 	this.transitionEndTime = 0.75;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
-	this.bkgMoveRate = -3;
 
 	this.planetsMoveRate = -4500;
 	this.transitioning = false;
@@ -162,7 +164,7 @@ Game.prototype.tick = function(evt)	{
 };
 
 Game.prototype.setStage = function()	{
-	this.stage.addChild(this.background);
+	this.stage.addChild(this.backgroundManager.stage);
 	this.scaledStage.addChild(this.particleManager.subStage);
 	this.scaledStage.addChild(this.planetManager.stage);
 	this.scaledStage.addChild(this.ship.wingTips);
@@ -243,7 +245,6 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.transitionElapsed = 0;
 		this.planetManager.stage.x = 0;
 		this.probeManager.stage.x = 0;
-		this.background.x += this.bkgMoveRate * delta;
 		this.nextLevelMade = false;
 		this.UI.applyProbesHere();
 		if (this.cheated)	{
@@ -261,7 +262,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		// this.dustEmitter.canEmit = true;
 		this.dustEmitterTrail.canEmit = false;
 
-		this.UI.scanBar.aplha = 1.0;
+		this.UI.scanBar.alpha = 1.0;
 		if (this.planetManager.levelType == "mine")	{
 			this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
 		}
@@ -273,7 +274,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		this.probeManager.scanBurst.canEmit = true;
 
-		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, this.background.x);
+		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 100);//this.background.x);
 		return;
 	}
 
@@ -357,7 +358,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 	}
 
-	this.background.x += globalMove;
+	this.backgroundManager.shiftThings(delta);
 
 	this.particleManager.shiftAllParticles(new Vector(diff, 0));
 	this.ship.warpEmitterSub.shiftAllParticles(new Vector(-diff, 0));
@@ -413,5 +414,5 @@ Game.prototype.setupLevel = function()	{
 
 Game.prototype.loadFromSave = function(save)	{
 	this.UI.updateText(save.launched, 0, save.passed, save.skipped);
-	this.background.x = save.travelled;
+	// this.background.x = save.travelled;
 }

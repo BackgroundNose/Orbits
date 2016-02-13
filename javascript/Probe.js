@@ -105,7 +105,7 @@ Probe.prototype.drawTrail = function()	{
 	}
 
 	this.trail.graphics.clear();
-	var lastpos = this.position;
+	var lastpos = this.position.clone();
 	var mu = 1;
 	count = 0
 	while (i != this.trailEndPointer)	{

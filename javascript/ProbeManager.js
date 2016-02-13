@@ -201,10 +201,10 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 	vec.normalise();
 
 	// this.puffEmitter.moveBoxTo(this.probeList[0].position);
-	this.puffEmitter.directedBurst(
-				Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),20,
-				0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
-				0.5,1.0,"N",-0,0,true);
+	// this.puffEmitter.directedBurst(
+	// 			Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),20,
+	// 			0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
+	// 			0.5,1.0,"N",-0,0,true);
 	
 	this.gravPart.moveBoxTo(new Vector(this.probeList[0].position.x - this.gravPart.emitBox.width/2.0, this.probeList[0].position.y- this.gravPart.emitBox.height/2.0 ));
 	this.gravPart.directedBurst(
