@@ -41,7 +41,6 @@ Emitter.prototype.Update = function(delta)
 
 	if (this.elapsed >= this.ttl && this.ttl != -1 && !this.dead)	{	// -1 indicates eternal emitter
 		this.dead = true;
-		console.log("killing "+this.name)
 	} 
 	else 
 	{
@@ -271,4 +270,5 @@ Emitter.prototype.shiftAllParticles = function(shift)	{
 Emitter.prototype.setRandomEmit = function(min, max)	{
 	this.emitRateMin = min;
 	this.emitRateMax = max;
+	this.emitRateMin + Math.random()*(this.emitRateMax-this.emitRateMin);
 }

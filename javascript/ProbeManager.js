@@ -31,6 +31,9 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager, level
 	this.piecesPerScan = 32;
 	this.piecesRequired = this.scansRequired*this.piecesPerScan;
 	this.piecesCollected = 0;
+	this.scanSounds = [["Sscan01", "Sscan05"], ["Sscan01", "Sscan03", "Sscan05"],  
+						["Sscan01", "Sscan02", "Sscan03", "Sscan05"], 
+						["Sscan01", "Sscan02", "Sscan03", "Sscan04","Sscan05"]];
 
 	this.levelBoundary = levelBoundary;
 
@@ -60,6 +63,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
 		if (hit !== undefined)	{
 			if (!transition)	{
+				createjs.Sound.play("SexploProbe");
 				var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(this.probeList[i].position.x,this.probeList[i].position.y,1,1), 
 					new Vector(0,0), new Vector(0,0), undefined);
 				shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
@@ -90,6 +94,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		}
 		if (!collidePointRect(this.probeList[i].position, this.levelBoundary))	{
 			this.probeList[i].kill = true;
+			console.log(this.probeList[i].position, this.levelBoundary,collidePointRect(this.probeList[i].position, this.levelBoundary))
 		}
 		if (planetManager.levelType == "scan")	{
 			var scanReturn = planetManager.checkScans(this.probeList[i].position, this.probeList[i].radius, true);
@@ -98,6 +103,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 					this.scanBurst.moveBoxTo(this.probeList[i].position);
 					this.scanBurst.circleBurst(this.piecesPerScan, 160, 160, 1.0, 1.0, "A", 0, 0, true);
 					this.probeList[i].scannedList.push(scanReturn[s]);
+					this.playScanSound(i);
 				}
 			}
 		}
@@ -108,7 +114,6 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 			this.dbgShape.graphics.es();
 		}
 	}
-
 	
 	for (var i = 0; i < this.probeList.length; i++)	{
 		if (this.probeList[i].kill)	{
@@ -125,6 +130,12 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		}
 	}
 };
+
+ProbeManager.prototype.playScanSound = function(probe)	{
+	console.log(this.probeList[probe].scannedList.length, this.scanSounds[this.scansRequired-2]);
+	createjs.Sound.play(
+		this.scanSounds[this.scansRequired-2][Math.min(this.scanSounds[this.scansRequired-2].length, this.probeList[probe].scannedList.length-1)]);
+} 
 
 ProbeManager.prototype.clearStuff = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
@@ -200,20 +211,13 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 	this.planetManagerRef.getTotalAttractionVector(this.probeList[0].position, vec);
 	vec.normalise();
 
-	// this.puffEmitter.moveBoxTo(this.probeList[0].position);
-	// this.puffEmitter.directedBurst(
-	// 			Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),20,
-	// 			0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
-	// 			0.5,1.0,"N",-0,0,true);
 	
 	this.gravPart.moveBoxTo(new Vector(this.probeList[0].position.x - this.gravPart.emitBox.width/2.0, this.probeList[0].position.y- this.gravPart.emitBox.height/2.0 ));
 	this.gravPart.directedBurst(
 				Math.min(Math.floor(this.probeList[0].velocity.norm()), this.smokeParticles), this.probeList[0].velocity.outNormalised(),36,
 				0.2*this.probeList[0].velocity.norm(), this.probeList[0].velocity.norm(),
 				0.5,1.0,"N",-0,0,true);
-	// vec.rotate(toRad(-5));
 	this.gravPart.emitVelocityLow = vec.outScalarMult(5);
-	// vec.rotate(toRad(10));
 	this.gravPart.emitVelocityHigh = vec.outScalarMult(100);
 	
 	this.gravPart.canEmit = true;

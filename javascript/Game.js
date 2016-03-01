@@ -2,17 +2,21 @@ function Game()
 {
 	this.stage = new createjs.Stage(canvas);
 
-	this.minScaleBox = new createjs.Rectangle(20, 20, canvas.width-40, canvas.height-40);
+	this.border = 50;
+	this.minScale = 0.5;
+	this.maxScale = 1.0;
+
+	this.minScaleBox = new createjs.Rectangle(this.border, this.border, canvas.width-this.border, canvas.height-this.border);
 	this.maxExtraHor = canvas.width;
 	this.maxExtraVert = canvas.height; 
 	this.scaledStage = new createjs.Container();
 	this.scaledStage.scaleX = this.scaledStage.scaleY = 1.0;
 
-	this.levelBoundary = new createjs.Rectangle(-canvas.width, -canvas.height, 3*canvas.width, 3*canvas.height);
+	this.levelBoundary = new createjs.Rectangle(-canvas.width-this.border, -canvas.height-this.border, 3*canvas.width+2*this.border, 3*canvas.height+2*this.border);
 
 	this.screenRect = new createjs.Rectangle(0, 0, canvas.width, canvas.height);
 
-	
+	this.dbgshape = new createjs.Shape();	
 
 	this.backgroundManager = new Background(new createjs.Rectangle(-this.maxExtraHor, -this.maxExtraVert, canvas.width*3, canvas.height*3));
 	this.backgroundManager.spawnInitialStars();
@@ -104,6 +108,7 @@ Game.prototype.Update = function(delta) {
 	}	else if (this.planetManager.levelType == "scan")	{
 		if (this.probeManager.checkScans())	{
 			this.transitioning = true;
+			createjs.Sound.play("SscanComplete");
 		}
 	}
 
@@ -115,40 +120,48 @@ Game.prototype.Update = function(delta) {
 Game.prototype.setCameraScale = function()	{
 	var probe = this.probeManager.probeList[0];
 	var border = 50;
+
+	// Probe does not exist, or is inside the scale box.
 	if (this.probeManager.probeList.length == 0 ||
 		collidePointRect(probe.position, this.minScaleBox))	{
-		this.scaledStage.scaleX = this.scaledStage.scaleY = lerp( this.scaledStage.scaleX, 1.0, 0.1);
+
+		this.scaledStage.scaleX = this.scaledStage.scaleY = lerp(this.scaledStage.scaleX, 1.0, 0.1);
 		this.scaledStage.x = lerp(this.scaledStage.x, 0, 0.1);
 		this.scaledStage.y = lerp(this.scaledStage.y, 0, 0.1);
+
+		if (Math.abs(this.scaledStage.x) < 1.0e-8 || Math.abs(this.scaledStage.y) < 1.0e-8 )	{
+			this.scaledStage.x = 0;
+		} 
+		if ( Math.abs(this.scaledStage.y) < 1.0e-8 )	{
+			this.scaledStage.y = 0;
+		} 
+
+	// We must scale and shift the screen to accomodate the probe.
 	}	else 	{
-		if (probe.position.x < 0)	{
-			var spanX = canvas.width-probe.position.x;
-		}	else if (probe.position.x > canvas.width)	{
-			var spanX = probe.position.x + border;
-		}	else 	{
-			var spanX = canvas.width;
-		}
 
-		if (probe.position.y < 0)	{
-			var spanY = canvas.height-probe.position.y;
-		}	else if (probe.position.y > canvas.height)	{
-			var spanY = probe.position.y + border;
-		}	else 	{
-			var spanY = canvas.height;
-		}
+		var rightmost = Math.max(canvas.width, probe.position.x + border);
+		var leftmost = Math.min(0, probe.position.x - border);
+		var topmost = Math.min(0, probe.position.y - border);
+		var lowermost = Math.max(canvas.height, probe.position.y + border);
 
-		var scalX = clamp(canvas.width/spanX, 0.5, 1.0);
-		var scalY = clamp(canvas.height/spanY, 0.5, 1.0);
+		var spanX = rightmost - leftmost;
+		var spanY = lowermost - topmost;
 
-		this.scaledStage.scaleX = 
-			this.scaledStage.scaleY = lerp(this.scaledStage.scaleX, Math.min(scalX, scalY), 0.1);
+		var scalX = clamp(canvas.width/spanX, this.minScale, this.maxScale);
+		var scalY = clamp(canvas.height/spanY, this.minScale, this.maxScale);
 
-		this.scaledStage.x = lerp(this.scaledStage.x, -Math.min(0, (probe.position.x-border)*this.scaledStage.scaleX), 0.1);
-		this.scaledStage.y = lerp(this.scaledStage.y, -Math.min(0, (probe.position.y-border)*this.scaledStage.scaleY), 0.1);
+		var scale = lerp(this.scaledStage.scaleX, Math.min(scalX, scalY), 0.1);
+
+		this.scaledStage.scaleX = this.scaledStage.scaleY = scale;
+
+		this.scaledStage.x = -clamp(leftmost, canvas.width - (canvas.width*(1/this.minScale)), 0)*scale;
+		this.scaledStage.y = -clamp(topmost, canvas.height - (canvas.height*(1/this.minScale)), 0)*scale;
 	}
 
 	this.updateScreenRect();
 	this.updateDustEmitters(this.screenRect);
+	
+	this.backgroundManager.scaleStars(this.scaledStage.scaleX, new Vector(this.scaledStage.x, this.scaledStage.y));
 };
 
 Game.prototype.updateScreenRect = function()	{
@@ -167,11 +180,13 @@ Game.prototype.setStage = function()	{
 	this.stage.addChild(this.backgroundManager.stage);
 	this.scaledStage.addChild(this.particleManager.subStage);
 	this.scaledStage.addChild(this.planetManager.stage);
+	this.scaledStage.addChild(this.probeManager.stage);
 	this.scaledStage.addChild(this.ship.wingTips);
 	this.scaledStage.addChild(this.ship.sprite);
-	this.scaledStage.addChild(this.probeManager.stage);
+
 	this.scaledStage.addChild(this.particleManager.superStage);
 
+	this.scaledStage.addChild(this.dbgshape);
 
 	this.stage.addChild(this.scaledStage);
 
@@ -262,9 +277,10 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		// this.dustEmitter.canEmit = true;
 		this.dustEmitterTrail.canEmit = false;
 
-		this.UI.scanBar.alpha = 1.0;
 		if (this.planetManager.levelType == "mine")	{
 			this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
+		}	else {
+			 this.UI.scanBar.alpha = 1.0;
 		}
 
 		this.ship.warpEmitterSub.canEmit = false;
@@ -355,7 +371,6 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.warpEmitterSuper.particlePrototype.ttl = this.ship.warpEmitterSuper.baseRate/mu;
 		this.ship.drawTips(Math.min(1.0, mu));
 		this.ship.sprite.gotoAndStop("warping");
-
 	}
 
 	this.backgroundManager.shiftThings(delta);
@@ -385,7 +400,7 @@ Game.prototype.setupLevel = function()	{
 		
 		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.3)	{
 			console.log("Scan Path")
-			var toScan = 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-2));
+			var toScan = Math.min(5, 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-2)));
 			result = this.planetManager.makeScanPath(this.nextShipPos, 2, 5, 15, 
 						toScan, this.probeManager);
 			if (result !== undefined)	{

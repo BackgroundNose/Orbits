@@ -85,8 +85,23 @@ function init()  {
 		{id:"shield", src: "Graphics/Grav.png"},
 		{id:"grav", src: "Graphics/Particles/Grav.png"},
 		{id:"stars", src: "Graphics/Stars.png"},
+		{id:"smallStars", src: "Graphics/SmallStars.png"},
+		{id:"interestStars", src: "Graphics/InterestStars.png"},
 				]);
-	
+
+	var audioPath = "Sound/"
+	var sounds = [
+			{id:"Sscan01", src: "Scan01.wav"},
+			{id:"Sscan02", src: "Scan02.wav"},
+			{id:"Sscan03", src: "Scan03.wav"},
+			{id:"Sscan04", src: "Scan04.wav"},
+			{id:"Sscan05", src: "Scan05.wav"},
+			{id:"SscanComplete", src:"ScanComplete.wav"},
+			{id:"SexploProbe", src:"ExplosionProbe2.wav"},
+		];
+
+	createjs.Sound.registerSounds(sounds, audioPath)
+
 	bar.stage.update();
 	stage = new createjs.Stage(canvas);
 

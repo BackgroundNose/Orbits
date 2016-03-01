@@ -37,11 +37,11 @@ function Probe (needScanned, position)
 
 	this.trail = new createjs.Shape();
 	this.trailList = new Array()
-	for (var i = 0; i < 25; i++)	{
+	for (var i = 0; i < 40; i++)	{
 		this.trailList.push(new Vector(position.x,position.y));
 	}
 	this.trailEndPointer = 0;
-	this.trailAddPoint = false;
+	this.trailAddPoint = true;
 
 	this.position = new Vector(0,0);
 	this.velocity = new Vector(0,0);
@@ -83,7 +83,7 @@ Probe.prototype.Update = function(delta)	{
 		this.trailList[this.trailEndPointer].y = this.position.y;
 		this.trailEndPointer = (this.trailEndPointer+1) % this.trailList.length;
 	}
-	this.trailAddPoint = !this.trailAddPoint;
+	// this.trailAddPoint = !this.trailAddPoint;
 
 	this.drawTrail();
 

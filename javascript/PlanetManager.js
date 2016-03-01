@@ -17,8 +17,8 @@ function PlanetManager(pm)
 
 	this.minPlanetRadius = 12;
 	this.maxPlanetRadius = 50;
-	this.minTargetExtraRadius = 35;
-	this.maxTargetExtraRadius = 70;
+	this.minTargetExtraRadius = 45;
+	this.maxTargetExtraRadius = 80;
 
 	this.minMineShipDist = 350;
 
