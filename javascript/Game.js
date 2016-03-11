@@ -29,9 +29,14 @@ function Game()
 
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
-	this.transitionEndTime = 0.75;
+	this.transitionEndTime = 1.0;
 	this.transitionTotalTime = this.transitionStartTime + this.transitionMidTime + this.transitionEndTime;
 	this.transitionElapsed = 0;
+	this.startEndTransition = true;
+
+	this.warpStartSound = undefined;
+	this.warpMidSound = undefined;
+	this.warpFinalSound = undefined;
 
 	this.planetsMoveRate = -4500;
 	this.transitioning = false;
@@ -104,6 +109,7 @@ Game.prototype.Update = function(delta) {
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
 			this.transitioning = true;
+			createjs.Sound.play("SscanComplete");
 		}
 	}	else if (this.planetManager.levelType == "scan")	{
 		if (this.probeManager.checkScans())	{
@@ -288,6 +294,10 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.sprite.gotoAndStop("player");
 		this.ship.wingTips.graphics.clear();
 
+		this.warpStartSound.volume = 0;
+		this.warpStartSound.stop()
+		this.warpStartSound = undefined;
+
 		this.probeManager.scanBurst.canEmit = true;
 
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 100);//this.background.x);
@@ -301,8 +311,11 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.moveTo(this.nextShipPos);
 
 		var mu = (this.transitionElapsed-(this.transitionStartTime+this.transitionMidTime)) / (this.transitionEndTime);
-		var shiftTo = lerp(canvas.width+10, 0, mu);
-		var diff = shiftTo - this.planetManager.stage.x;
+		var shiftTo = lerp(canvas.width+300, 0, mu);
+
+	
+		var diff = this.planetsMoveRate*delta*(1-mu);
+
 		// var diff = lerp(this.planetsMoveRate, 0, mu) * delta;
 
 		this.ship.drawTips(1.0-mu);
@@ -315,6 +328,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		if (this.planetManager.levelType == "scan")	{
 			this.UI.scanBar.alpha = lerp(0, 1.0, mu);
 		}
+		this.warpStartSound.volume = (1-mu);
 	}	
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
@@ -371,6 +385,10 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.ship.warpEmitterSuper.particlePrototype.ttl = this.ship.warpEmitterSuper.baseRate/mu;
 		this.ship.drawTips(Math.min(1.0, mu));
 		this.ship.sprite.gotoAndStop("warping");
+
+		if (this.warpStartSound === undefined)	{
+			this.warpStartSound = createjs.Sound.play("Swarp");
+		}
 	}
 
 	this.backgroundManager.shiftThings(delta);

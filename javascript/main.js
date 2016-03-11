@@ -91,13 +91,24 @@ function init()  {
 
 	var audioPath = "Sound/"
 	var sounds = [
-			{id:"Sscan01", src: "Scan01.wav"},
-			{id:"Sscan02", src: "Scan02.wav"},
-			{id:"Sscan03", src: "Scan03.wav"},
-			{id:"Sscan04", src: "Scan04.wav"},
-			{id:"Sscan05", src: "Scan05.wav"},
-			{id:"SscanComplete", src:"ScanComplete.wav"},
-			{id:"SexploProbe", src:"ExplosionProbe2.wav"},
+			{id:"Sscan01", src: "Scan01.ogg"},
+			{id:"Sscan02", src: "Scan02.ogg"},
+			{id:"Sscan03", src: "Scan03.ogg"},
+			{id:"Sscan04", src: "Scan04.ogg"},
+			{id:"Sscan05", src: "Scan05.ogg"},
+			{id:"SscanComplete", src:"ScanComplete.ogg"},
+			{id:"SexpMine", src:"MineExplosion.ogg"},
+			{id:"SexpP1", src:"ExplosionProbe1.ogg"},
+			{id:"SexpP2", src:"ExplosionProbe2.ogg"},
+			{id:"SexpP3", src:"ExplosionProbe3.ogg"},
+			{id:"SexpP4", src:"ExplosionProbe4.ogg"},
+			{id:"SexpP5", src:"ExplosionProbe5.ogg"},
+			{id:"Swarp", src:"WarpStart.ogg"},
+			{id:"Sblip0", src:"ScanBlip1.ogg"},
+			{id:"Sblip1", src:"ScanBlip2.ogg"},
+			{id:"Sblip2", src:"ScanBlip3.ogg"},
+			{id:"Slaunch", src:"Thrust.ogg"},
+			{id:"Sgrav", src:"Launch2.ogg"}
 		];
 
 	createjs.Sound.registerSounds(sounds, audioPath)

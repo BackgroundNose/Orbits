@@ -19,17 +19,17 @@ function UI(min, max)
 
 	this.textSep = 25;
 
-	this.launchedText = new createjs.Text("0", "bold 36px Courier", "#8BD" );
+	this.launchedText = new createjs.Text("0", "36px Aldrich", "#8BD" );
 	this.launchedText.x = Math.floor(canvas.width/2.0 - (this.launchedText.getBounds().width/2.0));
 	this.launchedText.y = 3;
 	this.stage.addChild(this.launchedText);
 
-	this.probesHereText = new createjs.Text("+0", "bold 36px Courier", "#8BD" );
+	this.probesHereText = new createjs.Text("+0", "36px Aldrich", "#8BD" );
 	this.probesHereText.x = this.launchedText.x + this.launchedText.getBounds().width;
 	this.probesHereText.y = 3;
 	this.stage.addChild(this.probesHereText);
 
-	this.passedText = new createjs.Text("0", "bold 36px Courier", "#8DB" );
+	this.passedText = new createjs.Text("0", "36px Aldrich", "#8DB" );
 	this.passedText.x = this.probesHereText.x + this.probesHereText.getBounds().width + this.textSep;
 	this.passedText.y = 3;
 	this.stage.addChild(this.passedText);

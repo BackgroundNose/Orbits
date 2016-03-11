@@ -125,6 +125,7 @@ function ProtoParticles()
 					this.phase = 0;
 					this.dead = true;
 					this.parentEmitter.args[1].piecesCollected += 1;
+					createjs.Sound.play("Sblip"+Math.floor(Math.random()*3).toString());
 				}	else 	{
 					this.velocity.x = probe.position.x - this.worldPosition.x;
 					this.velocity.y = probe.position.y - this.worldPosition.y;
