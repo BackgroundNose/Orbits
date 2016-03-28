@@ -3,6 +3,9 @@ function UI(min, max)
 	this.stage = new createjs.Container();
 
 	this.targeter = new createjs.Shape();
+	this.launchPathShape = new createjs.Shape();
+	this.launchPathColor = "rgba(242,242,242,";
+
 	this.pathShape = new createjs.Shape();
 	this.pathShape.cache(0,0,canvas.width, canvas.height);
 
@@ -184,16 +187,26 @@ UI.prototype.applyProbesHere = function()	{
 	this.updateText(0,0,0,0);
 }
 
-UI.prototype.Update = function(delta, swipe, probeMan) {
+UI.prototype.Update = function(delta, swipe, probeMan, planetManager, ship, transitioning) {
 	this.targeter.graphics.clear();
 
 	if (swipe.swiping == true && swipe.swipeLength >= this.minSwipeLength)	{
+		if (probeMan.probeList.length == 0 && !transitioning)	{
+			var path = planetManager.integratePath(ship.worldPosition, 
+				probeMan.pushProbe(undefined, toDeg(angleToY(swipe.swipeVec)), 
+				Math.min(swipe.swipeLength,this.maxSwipeLength) / this.maxSwipeLength),
+												2,1, true);
+			this.drawLaunchPath(path.path, ship.worldPosition);
+		}
+
 		var len = probeMan.quantizeLaunchPower(Math.min(swipe.swipeLength,this.maxSwipeLength)/this.maxSwipeLength);
 		len *= this.maxSwipeLength;	
 		var dVec = new Vector(0,-1);
 		dVec.rotate(toRad(probeMan.quantizeLaunchAngle(toDeg(angleToY(swipe.swipeVec)))));
 		dVec.scalarMult(len);
 		this.drawTargeterArrow(swipe.start.x, swipe.start.y, swipe.start.x+dVec.x, swipe.start.y+dVec.y);
+	}	else 	{
+		this.launchPathShape.alpha = clamp(this.launchPathShape.alpha - 1*delta,0,1)
 	}
 
 	if (this.droppingBox)	{
@@ -268,6 +281,29 @@ UI.prototype.drawTargeterArrow = function(startX, startY, endX, endY)	{
 UI.prototype.clearStuff = function()	{
 	this.pathShape.graphics.clear();
 	this.pathShape.updateCache();
+}
+
+UI.prototype.drawLaunchPath = function(path, shipPos)	{
+	this.launchPathShape.alpha = 1;
+	this.launchPathShape.graphics.clear();
+	var dots = true;
+	var mu = 1;
+	var lastpos = shipPos.clone();
+	for (var i = 0; i < path.length; i++)	{
+		mu = clamp(1-(i / 100),0,1);
+		if (dots) {
+			if (i % 10 == 0)	{
+				this.launchPathShape.graphics.f("rgba(237, 247, 247,"+mu.toString()+")");
+				this.launchPathShape.graphics.dc(path[i].x, path[i].y, 2*mu);
+				this.launchPathShape.graphics.ef();
+			}
+		}	else 	{
+			this.launchPathShape.graphics.s("rgba(167,217,235,"+mu.toString()+")").ss(5*mu);
+			this.launchPathShape.graphics.mt(lastpos.x, lastpos.y);
+			this.launchPathShape.graphics.lt(path[i].x, path[i].y);
+			lastpos = path[i];
+		}
+	}
 }
 
 UI.prototype.drawPath = function(path, decimate)	{

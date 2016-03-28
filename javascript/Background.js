@@ -46,6 +46,11 @@ function Background(totalRect)	{
 	this.stage.addChild(this.dbgshape);
 }
 
+Background.prototype.clearAllThings = function()	{
+	this.stage.removeAllChildren();
+	this.starArray.length = 0;
+}
+
 Background.prototype.scaleStars = function(scale, shift)	{
 	var center = new Vector(canvas.width/2.0, canvas.height/2.0);
 
@@ -142,6 +147,36 @@ Background.prototype.spawnInitialStars = function() {
 	}
 };
 
+Background.prototype.saveToList = function()	{
+	var out = [];
+	for (var i = 0; i < this.starArray.length; i++)	{
+		var star = this.starArray[i]
+		out.push(star.getSaveRep());
+	}
+	return out;
+}
+
+Background.prototype.loadFromSave = function(inlist)	{
+	this.clearAllThings();
+	for (var i = 0; i < inlist.length; i++)	{
+		var ss = undefined;
+		if (inlist[i].type == "U")	{
+			ss = this.smallss;
+		}	else if (inlist[i].type == "O")	{
+			ss = this.ss;
+		} 	else if (inlist[i].type == "I")	{
+			ss = this.interestss;
+		} 	else 	{
+			console.error("UNKNOWN STAR TYPE: ", inlist[i].type);
+		}
+		star = new Star(ss, inlist[i].depth, inlist[i].type);
+		star.moveTo(new Vector(inlist[i].x, inlist[i].y));
+		star.sprite.gotoAndStop(inlist[i].frame);
+		this.stage.addChild(star.sprite);
+		this.starArray.push(star);
+	}
+}
+
 function Star(ss, depth, type)	{
 	this.sprite =  new createjs.Sprite(ss);
 	this.sprite.gotoAndStop(Math.random() * this.sprite.spriteSheet.getNumFrames());
@@ -172,4 +207,9 @@ Star.prototype.setScreenPos = function(center, scale, shift)	{
 
 	this.sprite.x = this.position.x + dispVec.x;
 	this.sprite.y = this.position.y + dispVec.y;
+}
+
+Star.prototype.getSaveRep = function()	{
+	return {'x':this.position.x,'y':this.position.y,'type':this.type, 
+		'depth':this.depthvar,'frame':this.sprite.currentFrame};
 }

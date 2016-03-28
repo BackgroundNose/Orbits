@@ -19,7 +19,6 @@ function Game()
 	this.dbgshape = new createjs.Shape();	
 
 	this.backgroundManager = new Background(new createjs.Rectangle(-this.maxExtraHor, -this.maxExtraVert, canvas.width*3, canvas.height*3));
-	this.backgroundManager.spawnInitialStars();
 
 	this.particleManager = new ParticleManager();
 
@@ -58,21 +57,7 @@ function Game()
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
 
-	// Initial level setup
-	this.setupLevel();
-	if (this.planetManager.levelType == "scan")	{
-		this.UI.scanBar.alpha = 1.0;
-	}	else   {
-		this.UI.scanBar.alpha = 0.0;
-		this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
-	}
-
 	this.dustEmitter = undefined;
-
-	this.setupParticles();
-	this.ship.moveTo(this.nextShipPos.clone());
-
-	this.setStage();	
 }
 
 Game.prototype.Update = function(delta) {
@@ -87,7 +72,7 @@ Game.prototype.Update = function(delta) {
 	if (this.swipe.complete)	{
 		if (this.swipe.swipeLength >= this.minLaunchLength)	{
 			var launchVec = this.swipe.swipeVec;
-			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength
+			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength;
 			this.probeManager.spawnProbe(this.ship.worldPosition, toDeg(angleToY(launchVec)), 
 											power, this.planetManager, this.UI);
 
@@ -101,7 +86,7 @@ Game.prototype.Update = function(delta) {
 		// this.UI.drawPath(out.path, 1);
 	}
 
-	this.UI.Update(delta, this.swipe, this.probeManager);
+	this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
 	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
 	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
@@ -122,6 +107,10 @@ Game.prototype.Update = function(delta) {
 	this.setCameraScale();
 	this.stage.update();
 };
+
+Game.prototype.winLevel = function()	{
+	this.transitioning = true;
+}
 
 Game.prototype.setCameraScale = function()	{
 	var probe = this.probeManager.probeList[0];
@@ -187,6 +176,7 @@ Game.prototype.setStage = function()	{
 	this.scaledStage.addChild(this.particleManager.subStage);
 	this.scaledStage.addChild(this.planetManager.stage);
 	this.scaledStage.addChild(this.probeManager.stage);
+	this.scaledStage.addChild(this.UI.launchPathShape);
 	this.scaledStage.addChild(this.ship.wingTips);
 	this.scaledStage.addChild(this.ship.sprite);
 
@@ -260,6 +250,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	// this.dustEmitter.canEmit = false;
 	this.dustEmitterTrail.canEmit = true;
 
+	this.UI.launchPathShape.alpha = 0;
+
 
 	if (this.transitionElapsed >= this.transitionTotalTime)	{
 		this.transitioning = false;
@@ -300,7 +292,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		this.probeManager.scanBurst.canEmit = true;
 
-		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 100);//this.background.x);
+		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 
+			this.planetManager, this.ship.worldPosition, this.probeManager.scansRequired, this.backgroundManager);
 		return;
 	}
 
@@ -398,7 +391,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	this.ship.warpEmitterSuper.shiftAllParticles(new Vector(-diff, 0));
 	this.probeManager.thruster.moveBy({x:diff, y:0});
 	this.particleManager.update(delta, this.probeManager.camRect);
-	this.UI.Update(delta, this.swipe, this.probeManager);
+	this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
 }
 
 Game.prototype.setupLevel = function()	{
@@ -412,8 +405,17 @@ Game.prototype.setupLevel = function()	{
 	while (result === undefined && i < 5)	{
 		i++;
 		this.planetManager.spawnPlanets(2+Math.floor(Math.random()*6));
-		this.lastShipPos = this.ship.worldPosition.clone();
-		this.nextShipPos = this.planetManager.getShipSpawn(10);
+
+		if (this.ship.worldPosition === undefined)	{
+			this.ship.worldPosition = new Vector(0,0);
+			this.ship.moveTo(this.planetManager.getShipSpawn(10));
+			this.nextShipPos = this.ship.worldPosition.clone();
+			this.lastShipPos = this.ship.worldPosition.clone();
+		}	else {
+			this.lastShipPos = this.nextShipPos.clone();
+			this.nextShipPos = this.planetManager.getShipSpawn(10);
+		}
+
 		console.time("MakeLevel");
 		
 		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.3)	{
@@ -446,6 +448,37 @@ Game.prototype.setupLevel = function()	{
 }
 
 Game.prototype.loadFromSave = function(save)	{
-	this.UI.updateText(save.launched, 0, save.passed, save.skipped);
-	// this.background.x = save.travelled;
+	console.log("Load",save);
+	this.UI.clearStuff();
+	if (!save.NEW)	{
+		var sp = new Vector(save.shipPos.x, save.shipPos.y);
+		this.nextShipPos = sp.clone();
+		this.lastShipPos = sp.clone();
+		this.ship.worldPosition = sp.clone();
+		this.ship.moveTo(this.ship.worldPosition);
+		this.UI.updateText(save.launched, 0, save.passed, save.skipped);
+		this.planetManager.loadFromSave(save);
+		if (this.planetManager.levelType == "scan")	{
+			this.probeManager.setScanRequired(save.toScan);
+		} 	else if (this.planetManager.levelType == "mine") {
+			this.probeManager.setScanRequired(0);
+		}
+		this.backgroundManager.loadFromSave(save.starList);
+	} 	else 	{
+		// Initial level setup
+		console.log("New game. No save found.");
+		this.setupLevel();
+		this.backgroundManager.spawnInitialStars();
+	}
+
+	if (this.planetManager.levelType == "scan")	{
+		this.UI.scanBar.alpha = 1.0;
+	}	else if (this.planetManager.levelType == "mine") {
+		this.UI.scanBar.alpha = 0.0;
+		this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
+	}
+	
+	this.setupParticles();
+	
+	this.setStage();	
 }

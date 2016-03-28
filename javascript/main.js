@@ -118,7 +118,6 @@ function init()  {
 
 	canvas.onmousemove = mouseMove;
 	canvas.ondrag = mouseMove;
-
 }
 
 

@@ -302,11 +302,7 @@ PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan
 						&& step.y >= this.planetBorder.y 
 						&& Math.sqrt(Math.pow(step.x-sPos.x,2) + Math.pow(step.y-sPos.y,2)) >= this.minMineShipDist)
 					{
-						this.mine = new Mine();
-						this.mine.moveTo(step);
-						this.stage.addChild(this.mine.cont);
-						
-						console.log(aList[a], fList[f]);
+						this.placeMine(step);
 
 						this.solutionForce = fList[f];
 						this.solutionAngle = aList[a];
@@ -319,6 +315,12 @@ PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan
 
 	console.log("Failed to make mine");
 	return undefined;
+}
+
+PlanetManager.prototype.placeMine = function(pos)	{
+	this.mine = new Mine();
+	this.mine.moveTo(pos);
+	this.stage.addChild(this.mine.cont);
 }
 
 PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minScan, probeMan)	{
@@ -348,5 +350,45 @@ PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minS
 				return result;
 			}
 		}
+	}
+}
+
+PlanetManager.prototype.makePlanetSaveList = function() {
+	var out = []
+	for (var i = 0; i < this.planetList.length; i++)	{
+		out.push({'x':this.planetList[i].position.x, 'y':this.planetList[i].position.y,
+			'mass':this.planetList[i].massIDX, 'size':this.planetList[i].sizeIDX,
+			'scanSize':this.planetList[i].targetRadius - this.planetList[i].radius})
+	}
+	return out;
+}
+
+PlanetManager.prototype.loadFromSave = function(save)	{
+	this.levelType = save.levelType;
+
+	this.makePlanetsFromList(save.planetList);
+
+	if (this.levelType == "mine")	{
+		this.placeMine(save.minePos);
+	}	else if (this.levelType == "scan")	{
+		console.log("scan load")
+		this.addTargetGraphics();
+		this.addTargetGraphics();
+		this.resetScanTargets();
+	}
+
+}
+
+PlanetManager.prototype.makePlanetsFromList = function(inlist)	{
+	if (inlist === undefined)	{
+		console.log("Inlist undefined")
+		return;
+	}
+	this.clearStuff();
+	for (var i = 0; i < inlist.length; i++)	{
+		var planet = new Planet(inlist[i].size, inlist[i].mass, inlist[i].scanSize, i);
+		planet.moveTo(new Vector(inlist[i].x, inlist[i].y));
+		this.stage.addChild(planet.sprite);
+		this.planetList.push(planet);
 	}
 }

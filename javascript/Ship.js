@@ -19,7 +19,7 @@ function Ship(pm)
 	// this.sprite.rotation = 90;
 
 
-	this.worldPosition = new Vector(100,100);
+	this.worldPosition = undefined;
 	this.velocity = new Vector(0,0);
 	this.force = new Vector(0,0);
 

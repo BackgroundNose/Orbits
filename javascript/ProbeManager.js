@@ -233,14 +233,19 @@ ProbeManager.prototype.stopOrKillProbe = function()	{
 }
 
 ProbeManager.prototype.pushProbe = function(idx, angle, power)	{
-	var probe = this.probeList[idx];
 	var newV = new Vector(0,-1);
 
 	newV.rotate(toRad(this.quantizeLaunchAngle(angle)));
 	newV.scalarMult(this.quantizeLaunchPower(power) * this.maxLaunchPower);
-	probe.velocity.x += newV.x;
-	probe.velocity.y += newV.y;
-	probe.experienceGravity = true;
+
+	if (idx !== undefined)	{
+		var probe = this.probeList[idx];
+		probe.velocity.x += newV.x;
+		probe.velocity.y += newV.y;
+		probe.experienceGravity = true;
+	}	else 	{
+		return newV;
+	}
 }
 
 ProbeManager.prototype.checkScans = function()	{

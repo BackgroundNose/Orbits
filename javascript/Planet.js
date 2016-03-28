@@ -38,6 +38,9 @@ function Planet(size, mass, targetRad, num)
 	this.radius = size*10 + 20;
     this.targetRadius = this.radius + targetRad;
 
+    this.massIDX = mass;
+    this.sizeIDX = size;
+
 	this.mass = ((mass+1)*18 + (size+1))*255000;
 
     this.num = num;
