@@ -87,6 +87,7 @@ Background.prototype.shiftThings = function(delta)	{
 }
 
 Background.prototype.newStar = function(init)	{
+
 	while (Math.random() >= this.underCount/this.underStars)	{
 		var sp = new Star(this.smallss, Math.random()*0.1+0.1, "U");
 		
@@ -140,7 +141,7 @@ Background.prototype.newStar = function(init)	{
 
 Background.prototype.spawnInitialStars = function() {	
 	var j  = 0;
-
+	console.log("Spawn Initial")
 	while (j < this.underStars + this.overStars + this.interestStars)	{
 		this.newStar(true);
 		j++;
@@ -162,9 +163,12 @@ Background.prototype.loadFromSave = function(inlist)	{
 		var ss = undefined;
 		if (inlist[i].type == "U")	{
 			ss = this.smallss;
+			this.underCount++;
 		}	else if (inlist[i].type == "O")	{
+			this.overCount++;
 			ss = this.ss;
 		} 	else if (inlist[i].type == "I")	{
+			this.interestCount++;
 			ss = this.interestss;
 		} 	else 	{
 			console.error("UNKNOWN STAR TYPE: ", inlist[i].type);

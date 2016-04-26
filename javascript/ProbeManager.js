@@ -66,7 +66,8 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		if (hit !== undefined)	{
 			if (!transition)	{
 				createjs.Sound.play(this.probeExplosionSounds[Math.floor(Math.random()*this.probeExplosionSounds.length)]);
-				var shockwave = particleManager.addEmitterByType("shockwave", new createjs.Rectangle(this.probeList[i].position.x,this.probeList[i].position.y,1,1), 
+				var shockwave = particleManager.addEmitterByType("shockwave", 
+					new createjs.Rectangle(this.probeList[i].position.x + this.stage.x,this.probeList[i].position.y,1,1), 
 					new Vector(0,0), new Vector(0,0), undefined);
 				shockwave.circleBurst(32, 80, 130, 1.0, 1.0, "R", 0, 360, false, "wave");
 				shockwave.circleBurst(12, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
@@ -74,7 +75,7 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 				// here we reuse the thruster emitter. We will make a backup of the box position
 				var tempX = this.thruster.emitBox.x;
 				var tempY = this.thruster.emitBox.y;
-				this.thruster.emitBox.x = lastPos.x;
+				this.thruster.emitBox.x = lastPos.x+ this.stage.x;
 				this.thruster.emitBox.y = lastPos.y;
 				this.thruster.circleBurst(32, 250, 530, 0.8, 1.2, "R", 0, 360, false);
 				

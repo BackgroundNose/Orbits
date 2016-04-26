@@ -87,6 +87,7 @@ function init()  {
 		{id:"stars", src: "Graphics/Stars.png"},
 		{id:"smallStars", src: "Graphics/SmallStars.png"},
 		{id:"interestStars", src: "Graphics/InterestStars.png"},
+		{id:"hazards", src: "Graphics/Hazards.png"},
 				]);
 
 	var audioPath = "Sound/"
@@ -112,6 +113,7 @@ function init()  {
 		];
 
 	createjs.Sound.registerSounds(sounds, audioPath)
+	createjs.Sound.volume = 0.1;
 
 	bar.stage.update();
 	stage = new createjs.Stage(canvas);

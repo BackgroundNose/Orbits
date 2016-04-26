@@ -57,6 +57,11 @@ function Game()
 	this.UI = new UI(this.minLaunchLength, this.maxLaunchLength);
 	this.swipe = new Swipe();
 
+	this.eventManager = new EventManager();
+
+	this.textBoxWidth = 700;
+	this.textBoxHeight = 500;
+
 	this.dustEmitter = undefined;
 }
 
@@ -69,7 +74,7 @@ Game.prototype.Update = function(delta) {
 		return;
 	}
 
-	if (this.swipe.complete)	{
+	if (this.swipe.complete && !this.UI.interrupt)	{
 		if (this.swipe.swipeLength >= this.minLaunchLength)	{
 			var launchVec = this.swipe.swipeVec;
 			var power = Math.min(this.swipe.swipeLength,this.maxLaunchLength) / this.maxLaunchLength;
@@ -91,14 +96,15 @@ Game.prototype.Update = function(delta) {
 
 	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
 	this.planetManager.Update(delta, this.probeManager);
+
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
-			this.transitioning = true;
+			this.winLevel();
 			createjs.Sound.play("SscanComplete");
 		}
 	}	else if (this.planetManager.levelType == "scan")	{
 		if (this.probeManager.checkScans())	{
-			this.transitioning = true;
+			this.winLevel();
 			createjs.Sound.play("SscanComplete");
 		}
 	}
@@ -109,6 +115,7 @@ Game.prototype.Update = function(delta) {
 };
 
 Game.prototype.winLevel = function()	{
+	this.sendTrigger("end");
 	this.transitioning = true;
 }
 
@@ -240,6 +247,13 @@ Game.prototype.setupParticles = function()	{
 }
 
 Game.prototype.moveToNextLevel = function(delta)	{
+	if (this.UI.interrupt)	{
+		this.particleManager.update(delta, this.probeManager.camRect);
+		this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
+		return;
+	}
+
 	this.transitionElapsed += delta;
 	this.probeManager.markers = false;
 
@@ -294,6 +308,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 
 			this.planetManager, this.ship.worldPosition, this.probeManager.scansRequired, this.backgroundManager);
+		this.eventManager.selectEventsForLevel(this.UI.passed.toString());
+		this.sendTrigger("start");
 		return;
 	}
 
@@ -326,6 +342,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
+			this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
 			this.probeManager.piecesCollected = 0;
 			this.UI.updateScanBar(0);
 			this.probeManager.scanBurst.killAll();
@@ -358,7 +375,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	}	
 	else 	{
 		// Start Phase
-		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
@@ -477,8 +494,19 @@ Game.prototype.loadFromSave = function(save)	{
 		this.UI.scanBar.alpha = 0.0;
 		this.UI.showMineTarget(this.planetManager.mine.position.outScalarMult(this.scaledStage.scaleX));
 	}
-	
+
 	this.setupParticles();
 	
-	this.setStage();	
+	this.setStage();
+	this.eventManager.selectEventsForLevel(this.UI.passed.toString());
+	this.sendTrigger("start");
+}
+
+Game.prototype.sendTrigger = function(trigger)	{
+	var evt = this.eventManager.checkTrigger(trigger);
+	if (evt !== undefined)	{
+		var tb = new TextBox();
+		tb.formBox(evt, undefined, this.textBoxWidth, this.textBoxHeight);
+		this.UI.showTextBox(tb);
+	}
 }

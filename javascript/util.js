@@ -269,6 +269,31 @@ function toRad(deg) {
     return deg*0.0174532925;
 }
 
+function lineBreakString(text, cpl)	{
+	var count = 0;
+	for (var i = 0; i < text.length; i++)	{
+		count++;
+		if (text[i] == "\n")	{
+			count = 0;
+		}	else if (count > cpl) {
+			while (i > 0)	{
+				if (text[i] == " ")	{
+					text = text.slice(0,i)+"\n"+text.slice(i+1);
+					count = 0;
+					break;
+				}	else if (text[i+1] == " ")	{
+					text = text.slice(0,i+1)+"\n"+text.slice(i+2);
+					count = 0;
+					break;
+				}	else	{
+					i--;
+				}
+			}
+		}
+	}
+	return text;
+}
+
 var LoadingBar = function(width, height, padding, color, frameColor) {
 
         //setting default values for our arguments if no value is given

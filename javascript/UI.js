@@ -70,6 +70,9 @@ function UI(min, max)
 	this.MTfadeIn = 0.25;
 	this.MTmoveIn = 1.00;
 	this.MTfadeOut = 0.25;
+
+	this.activeTextBox = undefined;
+	this.interrupt = false;
 }
 
 UI.prototype.showMineTarget = function(minePos)	{
@@ -96,6 +99,10 @@ UI.prototype.showMineTarget = function(minePos)	{
 }
 
 UI.prototype.updateMineTarget = function(delta)	{
+	if (this.interrupt)	{
+		return;
+	}
+
 	this.MTelapsed += delta;
 
 	var surroundOffset = 55;
@@ -190,7 +197,13 @@ UI.prototype.applyProbesHere = function()	{
 UI.prototype.Update = function(delta, swipe, probeMan, planetManager, ship, transitioning) {
 	this.targeter.graphics.clear();
 
-	if (swipe.swiping == true && swipe.swipeLength >= this.minSwipeLength)	{
+	if (this.activeTextBox !== undefined)	{
+		if (!mouse.down && mouse.last && collidePointRect({'x':mouse.x - this.activeTextBox.display.x,'y':mouse.y - this.activeTextBox.display.y }, this.activeTextBox.button.hitrect))	{
+			if (this.activeTextBox.nextMessage())	{
+				this.removeActiveTextBox();
+			}
+		}
+	}	else if (swipe.swiping == true && swipe.swipeLength >= this.minSwipeLength)	{
 		if (probeMan.probeList.length == 0 && !transitioning)	{
 			var path = planetManager.integratePath(ship.worldPosition, 
 				probeMan.pushProbe(undefined, toDeg(angleToY(swipe.swipeVec)), 
@@ -461,4 +474,24 @@ UI.prototype.setupMineTargets = function()	{
 	this.mineTargetL.rotation = 90;
 	this.mineTargetR = temp.clone();
 	this.mineTargetR.rotation = 270;
+}
+
+UI.prototype.showTextBox = function(textBox)	{
+	if (textBox === undefined)	{
+		return;
+	}
+	if (this.activeTextBox !== undefined)	{
+		this.removeActiveTextBox();
+	}
+	this.activeTextBox = textBox;
+	this.activeTextBox.display.x = canvas.width/2.0 - this.activeTextBox.spanRect.width/2.0;
+	this.activeTextBox.display.y = canvas.height/2.0 - this.activeTextBox.spanRect.height/2.0;
+	this.stage.addChild(this.activeTextBox.display);
+	this.interrupt = true;
+}
+
+UI.prototype.removeActiveTextBox = function()	{
+	this.stage.removeChild(this.activeTextBox.display);
+	this.activeTextBox = undefined;
+	this.interrupt = false;
 }
