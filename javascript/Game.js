@@ -26,6 +26,8 @@ function Game()
 
 	this.ship = new Ship(this.particleManager);
 
+	this.hazardManager = new HazardManager();
+
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
 	this.transitionEndTime = 1.0;
@@ -96,6 +98,7 @@ Game.prototype.Update = function(delta) {
 
 	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
 	this.planetManager.Update(delta, this.probeManager);
+	this.hazardManager.Update(delta);
 
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
@@ -182,6 +185,7 @@ Game.prototype.setStage = function()	{
 	this.stage.addChild(this.backgroundManager.stage);
 	this.scaledStage.addChild(this.particleManager.subStage);
 	this.scaledStage.addChild(this.planetManager.stage);
+	this.scaledStage.addChild(this.hazardManager.stage);
 	this.scaledStage.addChild(this.probeManager.stage);
 	this.scaledStage.addChild(this.UI.launchPathShape);
 	this.scaledStage.addChild(this.ship.wingTips);
@@ -272,6 +276,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.transitionElapsed = 0;
 		this.planetManager.stage.x = 0;
 		this.probeManager.stage.x = 0;
+		this.hazardManager.stage.x = 0;
 		this.nextLevelMade = false;
 		this.UI.applyProbesHere();
 		if (this.cheated)	{
@@ -333,6 +338,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		this.planetManager.stage.x = shiftTo;
 		this.probeManager.stage.x = shiftTo;
+		this.hazardManager.stage.x = shiftTo;
+		this.hazardManager.Update(delta);
 
 		if (this.planetManager.levelType == "scan")	{
 			this.UI.scanBar.alpha = lerp(0, 1.0, mu);
@@ -350,6 +357,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 			this.probeManager.thruster.killAll();
 			this.probeManager.thruster.canEmit = false;
 			this.planetManager.stage.x = canvas.width+10;
+			this.hazardManager.stage.x = canvas.width+10;
+			this.hazardManager.clearAll();
 			this.setupLevel();
 			this.nextLevelMade = true;
 			this.probeManager.scanBurst.canEmit = false;
@@ -376,6 +385,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else 	{
 		// Start Phase
 		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
+		this.hazardManager.Update(delta);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;
@@ -383,6 +393,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.planetManager.stage.x += diff;
 		this.probeManager.stage.x += diff;
 		this.probeManager.gravPart.canEmit = false;
+		this.hazardManager.stage.x += diff;
 
 		this.scaledStage.x = lerp(this.scaledStage.x, 0, mu);
 		this.scaledStage.y = lerp(this.scaledStage.y, 0, mu);
@@ -421,7 +432,7 @@ Game.prototype.setupLevel = function()	{
 
 	while (result === undefined && i < 5)	{
 		i++;
-		this.planetManager.spawnPlanets(2+Math.floor(Math.random()*6));
+		this.planetManager.spawnPlanets(2+Math.floor(Math.random()*6), this.hazardManager);
 
 		if (this.ship.worldPosition === undefined)	{
 			this.ship.worldPosition = new Vector(0,0);

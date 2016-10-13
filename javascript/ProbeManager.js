@@ -42,7 +42,7 @@ function ProbeManager(minP, maxP, minProp, particleManager, planetManager, level
 	this.smokeParticles = 32;
 }
 
-ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManager, transition) {
+ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManager, hazardManager, transition) {
 	if (DEBUG)	{
 		this.dbgShape.graphics.clear();
 	}
@@ -63,6 +63,10 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		this.probeList[i].Update(delta);
 
 		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
+		// if (hit !== undefined)	{
+		// 	hit = hazardManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius);
+		// }
+
 		if (hit !== undefined)	{
 			if (!transition)	{
 				createjs.Sound.play(this.probeExplosionSounds[Math.floor(Math.random()*this.probeExplosionSounds.length)]);
@@ -175,7 +179,6 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power, pm, UI) {
 	this.puffEmitter.moveBoxTo(position);
 	this.puffEmitter.directedBurst(
 				this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
-
 };
 
 ProbeManager.prototype.refireProbe = function(angle, power)	{

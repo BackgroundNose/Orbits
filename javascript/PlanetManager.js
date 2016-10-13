@@ -84,7 +84,7 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 	}
 };
 
-PlanetManager.prototype.spawnPlanets = function(num) {
+PlanetManager.prototype.spawnPlanets = function(num, hazman) {
 	console.log("Making planets")
 	this.clearStuff();
 	this.planetList = new Array();
@@ -117,6 +117,15 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 		this.planetList.push(planet);
 
 		num--;
+	}
+
+	for (var i = 0; i < this.planetList.length; i++)	{
+		if (Math.random() > 0.5)	{
+			hazman.spawnHazard(this.planetList[i].position, this.planetList[i].radius*(1+Math.random()));
+			console.log("Make haz")
+		}	else 	{
+			console.log("Nope")
+		}
 	}
 };
 
