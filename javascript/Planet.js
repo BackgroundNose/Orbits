@@ -67,3 +67,5 @@ Planet.prototype.moveTo = function(pos) {
     this.targetSprite.x = pos.x;
     this.targetSprite.y = pos.y;
 }
+
+Planet.prototype.objname = "PLANET";

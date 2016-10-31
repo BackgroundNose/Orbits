@@ -143,7 +143,19 @@ Mine.prototype.explodeUpdate = function(delta)  {
     }
 }
 
-Mine.prototype.startMineExplosion = function(hitPos)  {
+Mine.prototype.startMineExplosion = function(hitPos,particleManager)  {
+    createjs.Sound.play("SexpMine");        // Did you stop scolling when your eye caught 'Sex'. You did, didn't you? ;)
+
+    var shockwave = particleManager.addEmitterByType("shockwave", 
+                    new createjs.Rectangle(this.position.x,this.position.y,this.radius,this.radius), 
+                    new Vector(0,0), new Vector(0,0), undefined);
+    shockwave.circleBurst(32, 80, 230, 1.0, 2.0, "R", 0, 360, false, "wave");
+    shockwave.circleBurst(12, 250, 530, 0.5, 3.5, "R", 0, 360, false, "wave");
+    // Again, global planetManager reference...
+    var fire = particleManager.addEmitterByType("fuse", new createjs.Rectangle(this.position.x,this.position.y, 1,1), undefined,
+                                undefined, {pm:game.planetManager});
+    fire.circleBurst(16, 200, 330, 0.8, 1.2, "R", 0, 360, false);
+    
     this.exploding = true;
 
     this.cont.removeChild(this.cover);
@@ -251,3 +263,5 @@ Mine.prototype.moveTo = function(pos)	{
 	this.cont.x = this.position.x = pos.x;
 	this.cont.y = this.position.y = pos.y;
 }
+
+Mine.prototype.objname = "MINE"

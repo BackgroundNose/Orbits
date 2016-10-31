@@ -159,4 +159,9 @@ Vector.prototype.angleToY = function()
     return  (360 - toDeg(Math.atan2(-t.x, -t.y))) % 360;
 }
 
+Vector.prototype.tangent = function()
+{
+	return new Vector(this.y, -this.x);
+}
+
 Vector.Zero = new Vector(0,0);

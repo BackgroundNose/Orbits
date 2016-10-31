@@ -22,11 +22,13 @@ function Game()
 
 	this.particleManager = new ParticleManager();
 
-	this.planetManager = new PlanetManager(this.particleManager);
+	this.hazardManager = new HazardManager(this.particleManager);
+
+	this.planetManager = new PlanetManager(this.particleManager, this.hazardManager);
 
 	this.ship = new Ship(this.particleManager);
 
-	this.hazardManager = new HazardManager();
+	
 
 	this.transitionStartTime = 2;
 	this.transitionMidTime = 1;
@@ -96,9 +98,9 @@ Game.prototype.Update = function(delta) {
 	this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
 	this.UI.updateScanBar(this.probeManager.piecesCollected/this.probeManager.piecesRequired);
 
-	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
+	this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, this.hazardManager, false);
 	this.planetManager.Update(delta, this.probeManager);
-	this.hazardManager.Update(delta);
+	this.hazardManager.Update(delta, this.planetManager);
 
 	if (this.planetManager.levelType == "mine")	{
 		if (this.planetManager.remake)	{
@@ -254,7 +256,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	if (this.UI.interrupt)	{
 		this.particleManager.update(delta, this.probeManager.camRect);
 		this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
-		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, this.hazardManager, true);
 		return;
 	}
 
@@ -339,7 +341,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.planetManager.stage.x = shiftTo;
 		this.probeManager.stage.x = shiftTo;
 		this.hazardManager.stage.x = shiftTo;
-		this.hazardManager.Update(delta);
+		this.hazardManager.Update(delta, this.planetManager);
 
 		if (this.planetManager.levelType == "scan")	{
 			this.UI.scanBar.alpha = lerp(0, 1.0, mu);
@@ -349,7 +351,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
-			this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, true);
+			this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, this.hazardManager, true);
 			this.probeManager.piecesCollected = 0;
 			this.UI.updateScanBar(0);
 			this.probeManager.scanBurst.killAll();
@@ -384,8 +386,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	}	
 	else 	{
 		// Start Phase
-		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, false);
-		this.hazardManager.Update(delta);
+		this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, this.hazardManager, false);
+		this.hazardManager.Update(delta, this.planetManager);
 		var mu = (this.transitionElapsed) / (this.transitionMidTime);
 		var shiftTo = lerp(0, canvas.width, mu);
 		var diff = lerp(0, this.planetsMoveRate, mu) * delta;

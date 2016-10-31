@@ -63,9 +63,9 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 		this.probeList[i].Update(delta);
 
 		var hit = planetManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius, true);
-		// if (hit !== undefined)	{
-		// 	hit = hazardManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius);
-		// }
+		if (hit === undefined)	{
+			hit = hazardManager.checkCollisions(this.probeList[i].position, this.probeList[i].radius);
+		}
 
 		if (hit !== undefined)	{
 			if (!transition)	{
@@ -82,23 +82,16 @@ ProbeManager.prototype.Update = function(delta, planetManager, UI, particleManag
 				this.thruster.emitBox.x = lastPos.x+ this.stage.x;
 				this.thruster.emitBox.y = lastPos.y;
 				this.thruster.circleBurst(32, 250, 530, 0.8, 1.2, "R", 0, 360, false);
-				
-				if (hit === planetManager.mine)	{
-					createjs.Sound.play("SexpMine");		// Did you stop scolling when your eye caught 'Sex'. You did, didn't you? ;)
-					shockwave.emitBox.x = hit.position.x;
-					shockwave.emitBox.y = hit.position.y;
-					this.thruster.emitBox.x = hit.position.x;
-					this.thruster.emitBox.y = hit.position.y;
-					shockwave.circleBurst(64, 100, 170, 1.0, 1.0, "R", 0, 360, false, "wave");
-					shockwave.circleBurst(32, 200, 300, 0.5, 1.5, "R", 0, 360, false, "wave");
-					this.thruster.circleBurst(16, 200, 330, 0.8, 1.2, "R", 0, 360, false);
-				}
 
 				// and restore the backup.
 				this.thruster.emitBox.x = tempX;
 				this.thruster.emitBox.y = tempY;
 			}
 			this.probeList[i].kill = true;
+
+			if (hit.objname == "HAZARD")	{
+				hit.makePhysical(this.probeList[i].position, this.probeList[i].velocity);
+			}
 		}
 
 		if (!collidePointRect(this.probeList[i].position, this.levelBoundary))	{

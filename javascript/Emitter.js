@@ -128,6 +128,10 @@ Emitter.prototype.getNewParticle = function()
 
 Emitter.prototype.emit = function(toEmit)
 {
+	if (this.dead)	{
+		console.log("ERROR: Emitting from dead emitter: ",this.name);
+		return;
+	}
 	var emitIDX = undefined;
 
 	while (toEmit > 0)
@@ -175,6 +179,10 @@ Emitter.prototype.emit = function(toEmit)
 
 Emitter.prototype.circleBurst = function(toEmit, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame, animation)
 {
+	if (this.dead)	{
+		console.log("ERROR: Emitting from dead emitter: ",this.name);
+		return;
+	}
 	var angleInc = (2*Math.PI) / toEmit;
 	var emitIDX = undefined;
 	var emissionList = new Array();
@@ -239,16 +247,19 @@ Emitter.prototype.killAll = function()	{
 	}
 }
 
-Emitter.prototype.directedBurst = function(toEmit, direction, deviation, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame)
-{
-		var list = this.circleBurst(toEmit, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame);
+Emitter.prototype.directedBurst = function(toEmit, direction, deviation, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame) {
+	if (this.dead)	{
+		console.log("ERROR: Emitting from dead emitter: ",this.name);
+		return;
+	}
+	var list = this.circleBurst(toEmit, speedMin, speedMax, scaleMin, scaleMax, rotMode, rotMin, rotMax, randFrame);
 
-		for (var i = 0; i < list.length; i++)	{
-			this.particleList[list[i]].velocity = direction.outNormalised();
-			this.particleList[list[i]].velocity.rotate(toRad(-deviation + Math.random()*(deviation*2)));
-			this.particleList[list[i]].velocity.scalarMult(speedMin+Math.random()*(speedMax-speedMin));
-		}
-		return list;
+	for (var i = 0; i < list.length; i++)	{
+		this.particleList[list[i]].velocity = direction.outNormalised();
+		this.particleList[list[i]].velocity.rotate(toRad(-deviation + Math.random()*(deviation*2)));
+		this.particleList[list[i]].velocity.scalarMult(speedMin+Math.random()*(speedMax-speedMin));
+	}
+	return list;
 };
 
 Emitter.prototype.moveBoxTo = function(pos)	{

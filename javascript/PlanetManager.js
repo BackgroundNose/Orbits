@@ -1,5 +1,7 @@
-function PlanetManager(pm)
+function PlanetManager(pm, hazman)
 {
+	this.hazman = hazman;
+
 	this.planetBorder = new Vector(100,100);
 	this.stage = new createjs.Container();
 
@@ -84,8 +86,8 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 	}
 };
 
-PlanetManager.prototype.spawnPlanets = function(num, hazman) {
-	console.log("Making planets")
+PlanetManager.prototype.spawnPlanets = function(num) {
+	console.log("Making planets");
 	this.clearStuff();
 	this.planetList = new Array();
 
@@ -120,11 +122,9 @@ PlanetManager.prototype.spawnPlanets = function(num, hazman) {
 	}
 
 	for (var i = 0; i < this.planetList.length; i++)	{
-		if (Math.random() > 0.5)	{
-			hazman.spawnHazard(this.planetList[i].position, this.planetList[i].radius*(1+Math.random()));
-			console.log("Make haz")
-		}	else 	{
-			console.log("Nope")
+		if (Math.random() > 0.05)	{
+			this.hazman.spawnHazard(this.planetList[i].position, 
+				this.planetList[i].radius*(1.1+1.9*Math.random()));
 		}
 	}
 };
@@ -146,6 +146,7 @@ PlanetManager.prototype.clearStuff = function()	{
 	}
 	this.remake = false;
 	this.planetList = new Array();
+	this.hazman.clearAll();
 }
 
 PlanetManager.prototype.getShipSpawn = function(shipSize)	{
@@ -191,7 +192,8 @@ PlanetManager.prototype.checkCollisions = function(position, rad, mineCheck)	{
 	}
 
 	if (this.mine !== undefined && mineCheck && collideCircleCircle(position, rad, this.mine.position, this.mine.radius))	{
-		this.mine.startMineExplosion(position);
+		// Nasty use of global code. :(
+		this.mine.startMineExplosion(position, game.particleManager);
 		return this.mine;
 	}
 	return undefined;
@@ -330,6 +332,9 @@ PlanetManager.prototype.placeMine = function(pos)	{
 	this.mine = new Mine();
 	this.mine.moveTo(pos);
 	this.stage.addChild(this.mine.cont);
+
+	game.hazardManager.spawnHazard(pos, 100);
+	game.hazardManager.hazardList[game.hazardManager.hazardList.length-1].orbitalAngularVelocity = 0;
 }
 
 PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minScan, probeMan)	{
