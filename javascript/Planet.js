@@ -41,7 +41,7 @@ function Planet(size, mass, targetRad, num)
     this.massIDX = mass;
     this.sizeIDX = size;
 
-	this.mass = ((mass+1)*18 + (size+1))*255000;
+	this.mass = ((mass+1)*18 + Math.pow((size+1),2))*255000;
 
     this.num = num;
 

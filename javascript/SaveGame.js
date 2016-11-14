@@ -11,12 +11,13 @@ function SaveGame()	{
 		}
 	}
 
-	this.updateSave = function(launched, passed, skipped, planMan, shipPos, toScan, background)	{
+	this.updateSave = function(launched, passed, skipped, planMan, shipPos, toScan, background, hazman)	{
 		this.saveFile.NEW = false;
 		this.saveFile.launched = launched;
 		this.saveFile.passed = passed;
 		this.saveFile.skipped = skipped;
 		this.saveFile.planetList = planMan.makePlanetSaveList();
+		this.saveFile.hazardList = hazman.makeHazardSaveList();
 		this.saveFile.levelType = planMan.levelType;
 		this.saveFile.shipPos = shipPos.clone();
 		if (planMan.mine !== undefined)	{
@@ -48,4 +49,5 @@ function SaveFile()	{
 	this.shipPos = new Vector(0,0);
 	this.toScan = undefined;
 	this.starList = [];
+	this.hazardList = [];
 }

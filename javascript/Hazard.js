@@ -37,7 +37,6 @@ function Hazard(type, orbrad, center, angvel)	{
 	this.orbitAngle = Math.random()*2*Math.PI;
 	this.setPosition(this.orbitAngle);
 	
-	this.position.scalarMult(this.orbitalRadius);
 }
 
 Hazard.prototype.update = function(delta, planman)	{
@@ -99,7 +98,7 @@ Hazard.prototype.getRealVelocity = function()	{
 	var speed = this.orbitalAngularVelocity*this.orbitalRadius;
 	vel.scalarMult(speed);
 	return vel;
-}
+};
 
 Hazard.prototype.setupSS = function()	{
 	return new createjs.SpriteSheet({

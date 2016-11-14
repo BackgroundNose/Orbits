@@ -247,6 +247,10 @@ ProbeManager.prototype.pushProbe = function(idx, angle, power)	{
 
 ProbeManager.prototype.checkScans = function()	{
 	for (var i = 0; i < this.probeList.length; i++)	{
+		if (this.probeList[i].scannedList.length >= this.scansRequired 
+			&& this.probeList[i].experienceGravity)	{
+			this.stopOrKillProbe();
+		}
 		if (this.piecesCollected >= this.piecesRequired)	{
 			return true;
 		}

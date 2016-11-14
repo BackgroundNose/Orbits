@@ -22,7 +22,7 @@ function PlanetManager(pm, hazman)
 	this.minTargetExtraRadius = 45;
 	this.maxTargetExtraRadius = 80;
 
-	this.minMineShipDist = 350;
+	this.minMineShipDist = 550;
 
 	this.remake = false;
 
@@ -86,8 +86,12 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 	}
 };
 
-PlanetManager.prototype.spawnPlanets = function(num) {
-	console.log("Making planets");
+PlanetManager.prototype.spawnPlanetsProgression = function(ilist)	{
+	return;
+}
+
+PlanetManager.prototype.spawnPlanetsRandomly = function(num, progress) {
+	console.log("Making planets", progress);
 	this.clearStuff();
 	this.planetList = new Array();
 
@@ -122,7 +126,7 @@ PlanetManager.prototype.spawnPlanets = function(num) {
 	}
 
 	for (var i = 0; i < this.planetList.length; i++)	{
-		if (Math.random() > 0.05)	{
+		if (Math.random() < progress)	{
 			this.hazman.spawnHazard(this.planetList[i].position, 
 				this.planetList[i].radius*(1.1+1.9*Math.random()));
 		}
@@ -219,9 +223,7 @@ PlanetManager.prototype.resetScanTargets = function()	{
 			this.planetList[i].resetElapsed = this.planetList[i].resetTime*(1.0-Math.min(1.0,this.planetList[i].scannedElapsed / this.planetList[i].scannedFade));
 
 			this.planetList[i].scanned = false;
-			this.planetList[i].scannedElapsed = 0;
-	
-			
+			this.planetList[i].scannedElapsed = 0;	
 		}
 	}
 }
@@ -332,9 +334,6 @@ PlanetManager.prototype.placeMine = function(pos)	{
 	this.mine = new Mine();
 	this.mine.moveTo(pos);
 	this.stage.addChild(this.mine.cont);
-
-	game.hazardManager.spawnHazard(pos, 100);
-	game.hazardManager.hazardList[game.hazardManager.hazardList.length-1].orbitalAngularVelocity = 0;
 }
 
 PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minScan, probeMan)	{
@@ -344,6 +343,9 @@ PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minS
 	var launchV = new Vector(0,-1);
 	var maxStep = Math.floor(maxt/TIMESTEP);
 	var minStep = Math.floor(mint/TIMESTEP);
+
+	var best = 0;
+	var bestResult = undefined;
 
 	for (var f = 0; f < fList.length; f++)	{
 		for (var a = 0; a < aList.length; a++)	{
@@ -362,19 +364,36 @@ PlanetManager.prototype.makeScanPath = function(sPos, probeRad, mint, maxt, minS
 				this.solutionForce = fList[f];
 				this.solutionAngle = aList[a];	
 				return result;
+			}	else if (result.scans.length > best)	{
+				best = result.scans.length;
+				bestResult = {"path":result.path.slice(),"time":result.time, "scans":result.scans.slice()};
 			}
 		}
+	}
+	if (best > 1)	{
+		console.log("Good Enough for jazz", best)
+		return bestResult;
 	}
 }
 
 PlanetManager.prototype.makePlanetSaveList = function() {
 	var out = []
 	for (var i = 0; i < this.planetList.length; i++)	{
-		out.push({'x':this.planetList[i].position.x, 'y':this.planetList[i].position.y,
+		out.push({'x':this.planetList[i].position.x/canvas.width, 'y':this.planetList[i].position.y/canvas.height,
 			'mass':this.planetList[i].massIDX, 'size':this.planetList[i].sizeIDX,
 			'scanSize':this.planetList[i].targetRadius - this.planetList[i].radius})
 	}
 	return out;
+}
+
+PlanetManager.prototype.loadFromEvent = function(evt)	{
+	this.levelType = evt.type;
+	this.makePlanetsFromList(evt.layout.planets);
+	if (this.levelType == "mine")	{
+		this.placeMine(new Vector(evt.layout.mine.x*canvas.width, evt.layout.mine.y*canvas.height));
+	}	else if (this.levelType == "scan")	{
+		console.log("SCAN")
+	}
 }
 
 PlanetManager.prototype.loadFromSave = function(save)	{
@@ -390,18 +409,17 @@ PlanetManager.prototype.loadFromSave = function(save)	{
 		this.addTargetGraphics();
 		this.resetScanTargets();
 	}
-
 }
 
 PlanetManager.prototype.makePlanetsFromList = function(inlist)	{
 	if (inlist === undefined)	{
-		console.log("Inlist undefined")
+		console.log("ERROR: Planets list undefined")
 		return;
 	}
 	this.clearStuff();
 	for (var i = 0; i < inlist.length; i++)	{
 		var planet = new Planet(inlist[i].size, inlist[i].mass, inlist[i].scanSize, i);
-		planet.moveTo(new Vector(inlist[i].x, inlist[i].y));
+		planet.moveTo(new Vector(inlist[i].x*canvas.width, inlist[i].y*canvas.height));
 		this.stage.addChild(planet.sprite);
 		this.planetList.push(planet);
 	}

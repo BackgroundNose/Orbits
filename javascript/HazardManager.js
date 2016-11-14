@@ -89,3 +89,40 @@ HazardManager.prototype.checkCollisions = function(point, rad)	{
 		}
 	}
 }
+
+HazardManager.prototype.makeHazardSaveList = function()	{
+	out = [];
+	for (var i = 0; i < this.hazardList.length; i++)	{
+		var haz = this.hazardList[i]
+		out.push(
+		{
+			type:haz.type,
+			orbCenter:haz.orbitalCenter,
+			orbRad:haz.orbitalRadius,
+			orbVel:haz.orbitalAngularVelocity
+		})
+	}
+	return out;
+}
+
+HazardManager.prototype.loadFromSave = function(save)	{
+	console.log("LOADING")
+	this.makeHazardsFromList(save.hazardList);
+}
+
+HazardManager.prototype.makeHazardsFromList = function(inlist)	{
+	if (inlist === undefined)	{
+		console.log("ERROR: Attempted to load from empty hazard list.");
+		return;
+	}
+	// this.clearAll();
+	console.log(inlist.length)
+	for (var i = 0; i < inlist.length; i++)	{
+		var haz = new Hazard(
+			inlist[i].type, inlist[i].orbRad, 
+			inlist[i].orbCenter, inlist[i].orbVel
+			);
+		this.hazardList.push(haz);
+		this.stage.addChild(haz.sprite);
+	}
+}

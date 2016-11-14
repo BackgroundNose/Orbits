@@ -80,6 +80,9 @@ Ship.prototype.addForce = function(force)	{
 }
 
 Ship.prototype.moveTo = function(pos) {
+	if (this.worldPosition === undefined)	{
+		this.worldPosition = new Vector(0,0);
+	}
 	this.wingTips.x = this.sprite.x = this.worldPosition.x = Math.floor(pos.x);
 	this.wingTips.y = this.sprite.y = this.worldPosition.y = Math.floor(pos.y);
 	this.emitBox.x = pos.x-this.engineParticleOffset.x;

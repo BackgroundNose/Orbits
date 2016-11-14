@@ -5,6 +5,7 @@ function UI(min, max)
 	this.targeter = new createjs.Shape();
 	this.launchPathShape = new createjs.Shape();
 	this.launchPathColor = "rgba(242,242,242,";
+	this.targetPoints = 6;
 
 	this.pathShape = new createjs.Shape();
 	this.pathShape.cache(0,0,canvas.width, canvas.height);
@@ -299,23 +300,17 @@ UI.prototype.clearStuff = function()	{
 UI.prototype.drawLaunchPath = function(path, shipPos)	{
 	this.launchPathShape.alpha = 1;
 	this.launchPathShape.graphics.clear();
-	var dots = true;
 	var mu = 1;
 	var lastpos = shipPos.clone();
-	for (var i = 0; i < path.length; i++)	{
-		mu = clamp(1-(i / 100),0,1);
-		if (dots) {
-			if (i % 10 == 0)	{
-				this.launchPathShape.graphics.f("rgba(237, 247, 247,"+mu.toString()+")");
-				this.launchPathShape.graphics.dc(path[i].x, path[i].y, 2*mu);
-				this.launchPathShape.graphics.ef();
-			}
-		}	else 	{
-			this.launchPathShape.graphics.s("rgba(167,217,235,"+mu.toString()+")").ss(5*mu);
-			this.launchPathShape.graphics.mt(lastpos.x, lastpos.y);
-			this.launchPathShape.graphics.lt(path[i].x, path[i].y);
-			lastpos = path[i];
+
+	for (var i = 0; i < this.targetPoints; i++)	{
+		if (i*10 >= path.length)	{
+			return;
 		}
+		mu = clamp(1-(i / 10),0,1);
+		this.launchPathShape.graphics.f("rgba(237, 247, 247,"+mu.toString()+")");
+		this.launchPathShape.graphics.dc(path[i*10].x, path[i*10].y, 2*mu);
+		this.launchPathShape.graphics.ef();
 	}
 }
 

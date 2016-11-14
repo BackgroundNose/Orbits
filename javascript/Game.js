@@ -66,6 +66,8 @@ function Game()
 	this.textBoxWidth = 700;
 	this.textBoxHeight = 500;
 
+	this.midProg = 500;
+
 	this.dustEmitter = undefined;
 }
 
@@ -91,8 +93,6 @@ Game.prototype.Update = function(delta) {
 		}	else {
 			this.probeManager.stopOrKillProbe();
 		}
-
-		// this.UI.drawPath(out.path, 1);
 	}
 
 	this.UI.Update(delta, this.swipe, this.probeManager, this.planetManager, this.ship, this.transitioning);
@@ -280,12 +280,6 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.probeManager.stage.x = 0;
 		this.hazardManager.stage.x = 0;
 		this.nextLevelMade = false;
-		this.UI.applyProbesHere();
-		if (this.cheated)	{
-			this.UI.updateText(0,0,0,1);
-		}	else 	{
-			this.UI.updateText(0,0,1,0);
-		}
 		this.cheated = false;
 		this.probeManager.markers = true;
 
@@ -314,8 +308,8 @@ Game.prototype.moveToNextLevel = function(delta)	{
 		this.probeManager.scanBurst.canEmit = true;
 
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 
-			this.planetManager, this.ship.worldPosition, this.probeManager.scansRequired, this.backgroundManager);
-		this.eventManager.selectEventsForLevel(this.UI.passed.toString());
+			this.planetManager, this.ship.worldPosition, this.probeManager.scansRequired, this.backgroundManager,
+			this.hazardManager);
 		this.sendTrigger("start");
 		return;
 	}
@@ -351,6 +345,9 @@ Game.prototype.moveToNextLevel = function(delta)	{
 	else if (this.transitionElapsed >= this.transitionStartTime)	{
 		// Mid Phase
 		if (!this.nextLevelMade)	{
+			this.UI.applyProbesHere();
+			this.UI.updateText(0,0,1,0);
+			this.eventManager.selectEventsForLevel(this.UI.passed.toString());
 			this.probeManager.Update(delta, this.planetManager, this.UI, this.particleManager, this.hazardManager, true);
 			this.probeManager.piecesCollected = 0;
 			this.UI.updateScanBar(0);
@@ -432,9 +429,39 @@ Game.prototype.setupLevel = function()	{
 	this.probeManager.clearStuff();
 	this.UI.clearStuff();
 
+	this.eventManager.selectEventsForLevel(this.UI.passed.toString());
+
+	if ( this.eventManager.currentEvent !== undefined &&
+			this.eventManager.currentEvent.layout !== undefined)	{
+		console.log("LOADING FROM EVENT!!");
+		var evt = this.eventManager.currentEvent;
+		console.log(evt.layout.planets)
+		this.planetManager.loadFromEvent(evt);
+		if (this.ship.worldPosition === undefined)	{
+			this.ship.worldPosition = new Vector(evt.layout.ship.x*canvas.width, evt.layout.ship.y*canvas.height);
+			this.ship.moveTo(this.ship.worldPosition);
+		}
+		if (evt.type == "scan")	{
+			if (evt.scans === undefined)	{
+				console.log("ERROR: NO SCAN NUMBER IN SCAN EVENT!");
+				this.probeManager.setScanRequired(evt.layout.planets.length);
+			}	else 	{
+				this.probeManager.setScanRequired(evt.scans);
+			}
+			this.planetManager.addTargetGraphics();
+			this.planetManager.resetScanTargets();
+		}	else 	{
+			this.probeManager.setScanRequired(0);
+		}
+		this.lastShipPos = this.nextShipPos.clone();
+		this.nextShipPos = new Vector(evt.layout.ship.x*canvas.width, evt.layout.ship.y*canvas.height);
+		return;
+	}
+
 	while (result === undefined && i < 5)	{
 		i++;
-		this.planetManager.spawnPlanets(2+Math.floor(Math.random()*6), this.hazardManager);
+		var prog = this.UI.cleared**2/(this.UI.cleared**2+this.midProg**2);
+		this.planetManager.spawnPlanetsRandomly(2+Math.floor(Math.random()*6), prog);
 
 		if (this.ship.worldPosition === undefined)	{
 			this.ship.worldPosition = new Vector(0,0);
@@ -461,6 +488,12 @@ Game.prototype.setupLevel = function()	{
 				this.planetManager.addTargetGraphics();
 				this.probeManager.setScanRequired(toScan);
 				this.planetManager.resetScanTargets();
+			}	else 	{
+				console.log("Panic making Mine Path")
+		 		result = this.planetManager.makeMine(this.nextShipPos, 2, 
+		 							3, 10, this.probeManager);
+				this.planetManager.levelType = "mine";
+				this.probeManager.setScanRequired(0);
 			}
 			
 		}	else 	{
@@ -470,11 +503,9 @@ Game.prototype.setupLevel = function()	{
 			this.planetManager.levelType = "mine";
 			this.probeManager.setScanRequired(0);
 		}
-							
 		console.timeEnd("MakeLevel");
-
 	}
-	// this.UI.drawPath(result.path);
+	this.UI.drawPath(result.path);
 }
 
 Game.prototype.loadFromSave = function(save)	{
@@ -488,6 +519,7 @@ Game.prototype.loadFromSave = function(save)	{
 		this.ship.moveTo(this.ship.worldPosition);
 		this.UI.updateText(save.launched, 0, save.passed, save.skipped);
 		this.planetManager.loadFromSave(save);
+		this.hazardManager.loadFromSave(save);
 		if (this.planetManager.levelType == "scan")	{
 			this.probeManager.setScanRequired(save.toScan);
 		} 	else if (this.planetManager.levelType == "mine") {
@@ -518,8 +550,15 @@ Game.prototype.loadFromSave = function(save)	{
 Game.prototype.sendTrigger = function(trigger)	{
 	var evt = this.eventManager.checkTrigger(trigger);
 	if (evt !== undefined)	{
-		var tb = new TextBox();
-		tb.formBox(evt, undefined, this.textBoxWidth, this.textBoxHeight);
-		this.UI.showTextBox(tb);
+		if (evt.msg !== undefined)	{
+			var tb = new TextBox();
+			tb.formBox(evt.msg, undefined, this.textBoxWidth, this.textBoxHeight);
+			this.UI.showTextBox(tb);
+		}
+		if (evt.mod !== undefined)	{
+			if (evt.mod['tgtmod'] !== undefined)	{
+				this.UI.targetPoints = evt.mod["tgtmod"];
+			}
+		}
 	}
 }
