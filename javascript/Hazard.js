@@ -1,4 +1,5 @@
 function Hazard(type, orbrad, center, angvel)	{
+	console.log(type)
 	this.radius = this.properties[type].hitrad;
 
 	this.sprite = new createjs.Sprite(this.setupSS());
@@ -109,22 +110,33 @@ Hazard.prototype.setupSS = function()	{
                     "regY": 25
                 },
                 "animations":{
-                	"roid1":0,
+                	"sroid1":0,
                 	"moon1":1,
+                	"lroid1":2,
+                	"lroid2":3,
+                	"lroid3":4,
+                	"hobj1":5,
+                	"hobj2":6,
                 	"toasterB":[12, 16,"toasterB",0.25],
                 	"toasterG":[24, 28,"toasterG",0.25],
                 	"toasterS":[36, 40,"toasterS",0.25],
-
+                	"whale":[17, 22,"whale",0.15],
                 },
                 "images": [preload.getResult("hazards")]});
 }
 
 Hazard.prototype.properties = {
-	"roid1":{direction:false,lock:"F",hitrad:8},
+	"sroid1":{direction:false,lock:"R",hitrad:8},
 	"moon1":{direction:false,lock:"F",hitrad:7},
+	"lroid1":{direction:false,lock:"F",hitrad:18},
+	"lroid2":{direction:false,lock:"T",hitrad:18},
+	"lroid3":{direction:false,lock:"T",hitrad:14},
+	"hobj1":{direction:false,lock:"T",hitrad:11},
+	"hobj2":{direction:false,lock:"T",hitrad:12},
 	"toasterB":{direction:true,lock:"T",hitrad:12},
 	"toasterG":{direction:true,lock:"T",hitrad:12},
-	"toasterS":{direction:true,lock:"T",hitrad:12}
+	"toasterS":{direction:true,lock:"T",hitrad:12},
+	"whale":{direction:true,lock:"T",hitrad:12}
 }
 
 Hazard.prototype.objname = "HAZARD";

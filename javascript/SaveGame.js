@@ -11,7 +11,7 @@ function SaveGame()	{
 		}
 	}
 
-	this.updateSave = function(launched, passed, skipped, planMan, shipPos, toScan, background, hazman)	{
+	this.updateSave = function(launched, passed, skipped, planMan, shipPos, toScan, background, hazman, tgtDots)	{
 		this.saveFile.NEW = false;
 		this.saveFile.launched = launched;
 		this.saveFile.passed = passed;
@@ -27,6 +27,7 @@ function SaveGame()	{
 		}
 		this.saveFile.toScan = toScan;
 		this.saveFile.starList = background.saveToList();
+		this.saveFile.tgtDots = tgtDots;
 		console.log(this.saveFile);
 
 		localStorage.setItem("orbitsSave", JSON.stringify(this.saveFile));
@@ -50,4 +51,5 @@ function SaveFile()	{
 	this.toScan = undefined;
 	this.starList = [];
 	this.hazardList = [];
+	this.tgtDots = 6;
 }

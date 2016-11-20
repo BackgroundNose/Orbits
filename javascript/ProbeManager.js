@@ -154,11 +154,10 @@ ProbeManager.prototype.spawnProbe = function(position, angle, power, pm, UI) {
 		return;
 	}
 
-	UI.updateText(0, 1, 0, 0);
-
 	var probe = new Probe(this.scansRequired, position);
 	this.probeList.push(probe);
 	this.pushProbe(this.probeList.length-1, angle, power);	
+	game.UI.updateText(0, 1, 0, 0);
 	this.stage.addChild(probe.trail);
 	this.stage.addChild(probe.sprite);
 	this.stage.addChild(probe.field);
@@ -194,6 +193,7 @@ ProbeManager.prototype.refireProbe = function(angle, power)	{
 				power*this.smokeParticles,smokeVec,20,20*power, 175*power,0.5,1.0,"N",-0,0,true);
 		this.gravPart.canEmit = false;
 		this.pushProbe(0, angle, power);
+		game.UI.updateText(0, 1, 0, 0);
 		createjs.Sound.play("Slaunch");
 	}
 	return;

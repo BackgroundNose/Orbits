@@ -86,10 +86,6 @@ PlanetManager.prototype.Update = function(delta, probeMan) {
 	}
 };
 
-PlanetManager.prototype.spawnPlanetsProgression = function(ilist)	{
-	return;
-}
-
 PlanetManager.prototype.spawnPlanetsRandomly = function(num, progress) {
 	console.log("Making planets", progress);
 	this.clearStuff();
@@ -119,17 +115,15 @@ PlanetManager.prototype.spawnPlanetsRandomly = function(num, progress) {
 
 		planet.moveTo(pos);
 
+		if (Math.random() < progress)	{
+			this.hazman.spawnHazard(planet.position,(planet.radius+25)*(1+0.5*Math.random()));
+		}
+
 		this.stage.addChild(planet.sprite);
 		this.planetList.push(planet);
+		
 
 		num--;
-	}
-
-	for (var i = 0; i < this.planetList.length; i++)	{
-		if (Math.random() < progress)	{
-			this.hazman.spawnHazard(this.planetList[i].position, 
-				this.planetList[i].radius*(1.1+1.9*Math.random()));
-		}
 	}
 };
 
@@ -155,13 +149,15 @@ PlanetManager.prototype.clearStuff = function()	{
 
 PlanetManager.prototype.getShipSpawn = function(shipSize)	{
 	var placed = false;
-	while (!placed)	{
+	var attempts = 0;
+	while (!placed && attempts < 20)	{
 		placed = true;
 		var pos = new Vector(this.shipSpawnRect.x + Math.random()*(this.shipSpawnRect.width-this.shipSpawnRect.x),
 								this.shipSpawnRect.y + Math.random()*(this.shipSpawnRect.height-this.shipSpawnRect.y));
 		for (var i = 0; i < this.planetList.length; i++)	{
 			if (collideCircleCircle(pos, shipSize, this.planetList[i].sprite, this.planetList[i].radius+this.shipPlanetExclusionZone))	{
 				placed = false;
+				attempts++;
 				break;
 			}
 		}
@@ -298,8 +294,8 @@ PlanetManager.prototype.makeMine = function(sPos, probeRad, mint, maxt, probeMan
 	var maxStep = Math.floor(maxt/TIMESTEP);
 	var minStep = Math.floor(mint/TIMESTEP);
 
-	for (var f = 0; f < fList.length; f++)	{
-		for (var a = 0; a < aList.length; a++)	{
+	for (var f = 0; f < 50; f++)	{
+		for (var a = 0; a < 50; a++)	{
 			launchV.x = 0;
 			launchV.y = -1;
 			launchV.rotate(toRad(aList[a]));

@@ -66,7 +66,6 @@ function Button(text, rect)	{
 	this.text = new createjs.Text("PLACEHOLDER", "28px Aldrich", "#878");
 	this.text.text = text;
 	var textpos = this.text.getBounds();
-	console.log(textpos)
 	this.text.x = rect.width/2.0 - textpos.width/2.0-13;
 	this.text.y = rect.height/2.0 - textpos.height/2.0-1;
 

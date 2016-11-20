@@ -1,18 +1,26 @@
 function EventManager()	{
 	this.eventList = {
 		'0':{
-			'start':{'msg':["Welcome to the game. First a little tutorial to show you how we do 'round here."]},
-			'end':{'msg':["Nice shot.\n\nI'm sure you will go far."]},
+			'start':{'msg':["Welcome science officer.\n\nI'll get you settled in with your interface, and we can begin our journey across the sky!",
+							"o_o\n\nLooks like an anti-ship mine has wandered into the system.\n\nWe should clean up any mines we find!",
+							"You're in charge of launching our exploratory probes.\n\nSimply touch and drag to line up a launch path,\nthen release when you are happy and watch the probe go sailing forth.",
+							"When the probe is in flight you can give it a kick with further swipes.\n\nOr tap the screen to halt the probe and correct the course.",
+							"Now.\n\nI'll highlight the mine,\n\nYou smash it!"
+							]},
+			'end':{'msg':["Nice shot!\n\nThat's cleaned that up!",
+			"And don't worry about the probes.\n\nWe've got loads of 'em!",
+			"Now.\n\nLets start the journey.\n\nWarp speed 9!"]},
 			'type':"mine",
 			'layout':{
 				planets:[{'x':0.5, 'y':0.5,'mass':1, 'size':2,'scanSize':undefined}],
-				ship:{'x':0.25,'y':0.5},
-				mine:{'x':0.75,'y':0.5}
+				ship:{'x':0.15,'y':0.5},
+				mine:{'x':0.85,'y':0.5}
 			}
 		},
 		'1':{
-			'start':{'msg':["This time you gotta scan the planets. For reasons."]},
-			'end':{'msg':["Nice. Nothing, but no worries. I'm sure the next planets will have what we want."]},
+			'start':{'msg':["Aha!\n\nA pristine system.\n\nLets scan the planets and see what's here.",
+							"I've marked the target zones with dashed lines.\n\nLaunch a probe like last time, try to visit the zones and colect the science doops.\n\nWe'll need to fill the whole science bar to get something publishable."]},
+			'end':{'msg':["Nice!\n\nWe'll have a Science paper together in no time!","Onwards!"]},
 			'type':"scan",
 			'scans':3,
 			'layout':{
@@ -25,16 +33,24 @@ function EventManager()	{
 			}
 		},
 		'2':{
-			'start':{'msg':["I was trying to add another dot to the targeting thingy\nand I accidentally... broke one off.\n\nSorry!\n\nI kept it safe though!\n\n\n\n."],
+			'start':{'msg':["By the way,\n\nI always make sure to park us somewhere you can get a good shot from.",
+							"You can pass any system with a single, well aimed, shot.\n\nNo adjustments needed.",
+							"Not saying its easy...\n\nBut possible!"
+							]}
+		},
+		'21':{
+			'start':{'msg':["I was trying to add another dot to the targeting thingy\nand I accidentally...","...broke one off.","Sorry!\n\nI kept it safe though!\n\n\n\n."],
 				'mod':{'tgtmod':5}
 			}
 		},
-		'3':{
-			'start':{'msg':["Well, I've got good news and bad!\n\nI was trying to fix the targetting doodads again.","Good news is I re-attached the broken blip!", "Bad news is I broke two more off in the process.\n\n:(\n\n\n\n. ."],
+		'23':{
+			'start':{'msg':["Well, I've got good news and bad!\n\nI was trying to fix the targeting doodads again...",
+							"Good news is I re-attached the broken blip!", 
+							"Bad news is I broke two more off.\n\n:(\n\n\n\n. ."],
 				'mod':{'tgtmod':4}
 			}
 		},
-		'4':{
+		'26':{
 			'start':{'msg':["Hey! I managed to fix the targeter!"],
 				'mod':{'tgtmod':6}
 			},
@@ -42,20 +58,15 @@ function EventManager()	{
 				'mod':{'tgtmod':4}
 			}
 		},
-		'5':{
-			'start':{'msg':["Hey! I managed to fix the targeter!"],
-				'mod':{'tgtmod':6}
-			}
-		},
-		'6':{
+		'32':{
 			'start':{'msg':["*Someone* just broke another targeter dot.\n\nNot me. I haven't touched the thing in ages.\n\n\n. . ."],
 				'mod':{'tgtmod':3}
 			},
-			'end':{'msg':["Yeah...\nIt was me that broke the targeter again.\n\nBut I really thought I had it this time!\n\nIt feels good to come clean about that."]}
+			'end':{'msg':["Yeah...\n\nIt was me that broke the targeter again.\n\nBut I really thought I had it this time!","It feels good to come clean about that.\n\nMorality remains an important part of me."]}
 		},
-		'7':{
-			'start':{'msg':["You know what,\n\nI'm just going to remove the targeter completely and keep it safe.\n\nHopefully the warrantry is still good."],
-				'mod':{'tgtmod':0}
+		'38':{
+			'start':{'msg':["With a roll of vacuum tape and some quantum string I've pieced the dots back together.\n\nNo more messing with them!"],
+				'mod':{'tgtmod':6}
 			}
 		},
 		//"movl _stuff+24, %%esi\nmovl _stuff+24, %%edi\nsarl $31, %%esi\nmovl _stuff+32, %%ebp\nsarl $31, %%ebp\nandl %2, %%esi\naddl %%esi, %%edi\nmovl _stuff+32, %%esi\nandl %2, %%ebp\nmovl %%edi, (%0)\naddl %%ebp, %%esi\nmovl _stuff+40, %%edi\nsarl $31, %%edi\nmovl %%esi, 4(%0)\nfstpl _stuff+24\nmovl _stuff+40, %%esi\nmovl _stuff+24, %%ebp\nsarl $31, %%ebp\nandl %2, %%edi\naddl %%edi, %%esi\nmovl _stuff+24, %%edi\nandl %2, %%ebp\nmovl %%esi, 8(%0)\naddl %%ebp, %%edi\nmovl %%edi, 12(%0)\nnop\n"
@@ -64,8 +75,25 @@ function EventManager()	{
 					 "\n\n\n\n\n\nSorry, just thinking aloud..."]
 				}
 		},
+		'301':{
+			'start':{'msg':["Do you ever wonder if there are people in those probes?"]
+			}
+		},
 		'1023':{
 			'end':{'msg':["We just cleared our 1024th system!\n\nWhat a nice round number."]}
+		},
+		'1782':{
+			'end':{'msg':["There's no sound in space.\n\nSo I have to make up the sound of probes exploding.",
+						  "I hope you appreciate the effort I put in for you."]}
+		},
+		'2047':{
+			'end':{'msg':["2^N\n\nwhere N is pretty big now!"]}
+		},
+		'3122':{
+			'end':{'msg':["Some of these planets are starting to look pretty familiar..."]}
+		},
+		'4922':{
+			'end':{'msg':["One system cleared for every year I've been alive..."]}
 		}
 	}
 

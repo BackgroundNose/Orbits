@@ -309,7 +309,7 @@ Game.prototype.moveToNextLevel = function(delta)	{
 
 		saveGame.updateSave(this.UI.launched, this.UI.passed, this.UI.skipped, 
 			this.planetManager, this.ship.worldPosition, this.probeManager.scansRequired, this.backgroundManager,
-			this.hazardManager);
+			this.hazardManager, this.UI.targetPoints);
 		this.sendTrigger("start");
 		return;
 	}
@@ -460,25 +460,16 @@ Game.prototype.setupLevel = function()	{
 
 	while (result === undefined && i < 5)	{
 		i++;
-		var prog = this.UI.cleared**2/(this.UI.cleared**2+this.midProg**2);
+		var prog = Math.min(this.UI.passed**2/(this.UI.passed**2+this.midProg**2), 0.9);
 		this.planetManager.spawnPlanetsRandomly(2+Math.floor(Math.random()*6), prog);
 
-		if (this.ship.worldPosition === undefined)	{
-			this.ship.worldPosition = new Vector(0,0);
-			this.ship.moveTo(this.planetManager.getShipSpawn(10));
-			this.nextShipPos = this.ship.worldPosition.clone();
-			this.lastShipPos = this.ship.worldPosition.clone();
-		}	else {
-			this.lastShipPos = this.nextShipPos.clone();
-			this.nextShipPos = this.planetManager.getShipSpawn(10);
-		}
-
+		var shipSpawn = this.planetManager.getShipSpawn(10);
 		console.time("MakeLevel");
 		
 		if (this.planetManager.planetList.length > 3 && Math.random() >= 0.3)	{
 			console.log("Scan Path")
 			var toScan = Math.min(5, 2 + Math.floor(Math.random()*(this.planetManager.planetList.length-2)));
-			result = this.planetManager.makeScanPath(this.nextShipPos, 2, 5, 15, 
+			result = this.planetManager.makeScanPath(shipSpawn, 2, 5, 15, 
 						toScan, this.probeManager);
 			if (result !== undefined)	{
 				if (DEBUG)	{
@@ -490,7 +481,7 @@ Game.prototype.setupLevel = function()	{
 				this.planetManager.resetScanTargets();
 			}	else 	{
 				console.log("Panic making Mine Path")
-		 		result = this.planetManager.makeMine(this.nextShipPos, 2, 
+		 		result = this.planetManager.makeMine(shipSpawn, 2, 
 		 							3, 10, this.probeManager);
 				this.planetManager.levelType = "mine";
 				this.probeManager.setScanRequired(0);
@@ -498,14 +489,25 @@ Game.prototype.setupLevel = function()	{
 			
 		}	else 	{
 			console.log("Mine Path")
-	 		result = this.planetManager.makeMine(this.nextShipPos, 2, 
+	 		result = this.planetManager.makeMine(shipSpawn, 2, 
 	 							3, 10, this.probeManager);
 			this.planetManager.levelType = "mine";
 			this.probeManager.setScanRequired(0);
 		}
 		console.timeEnd("MakeLevel");
 	}
-	this.UI.drawPath(result.path);
+
+	if (this.ship.worldPosition === undefined)	{
+		this.ship.worldPosition = new Vector(0,0);
+		this.ship.moveTo(shipSpawn);
+		this.nextShipPos = this.ship.worldPosition.clone();
+		this.lastShipPos = this.ship.worldPosition.clone();
+	}	else {
+		this.lastShipPos = this.nextShipPos.clone();
+		this.nextShipPos = shipSpawn.clone();
+	}
+
+	// this.UI.drawPath(result.path);
 }
 
 Game.prototype.loadFromSave = function(save)	{
@@ -518,6 +520,7 @@ Game.prototype.loadFromSave = function(save)	{
 		this.ship.worldPosition = sp.clone();
 		this.ship.moveTo(this.ship.worldPosition);
 		this.UI.updateText(save.launched, 0, save.passed, save.skipped);
+		this.UI.targetPoints = save.tgtDots;
 		this.planetManager.loadFromSave(save);
 		this.hazardManager.loadFromSave(save);
 		if (this.planetManager.levelType == "scan")	{

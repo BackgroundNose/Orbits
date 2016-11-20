@@ -6,6 +6,16 @@ function HazardManager(particleManager)	{
 	this.hazardList = [];
 
 	this.pm = particleManager;
+
+	this.common = [
+		"sroid1", "moon1", "lroid1", "lroid2", "lroid3","whale"
+		];
+	this.rare = [
+		"hobj1", "hobj2"
+		];
+	this.superRare = [
+			"toasterB", "toasterG", "toasterS"
+		];
 }
 
 HazardManager.prototype.Update = function(delta, planetMan) {
@@ -49,20 +59,25 @@ HazardManager.prototype.makeExposion = function(pos, small)	{
 	}	else 	{
 		explode.circleBurst(32, 80, 130, 0.5, 1.0, "R", 0, 360, false, "wave");
 		explode.circleBurst(24, 250, 330, 0.5, 1.5, "R", 0, 360, false, "wave");
-	}
-	
-			
+		createjs.Sound.play("SexpMine");
+	}			
 }
 
 HazardManager.prototype.spawnHazard = function(center, rad)	{
 	console.log("SPAWNING")
 
-	var type = Object.keys(Hazard.prototype.properties);
-	type = type[Math.floor(Math.random()*type.length)];
+	var num = Math.random()*100;
+	if (num < 0.2)	{
+		var type = this.superRare[Math.floor(Math.random()*this.superRare.length)];
+	}	else if (num < 1)	{
+		var type = this.rare[Math.floor(Math.random()*this.rare.length)];
+	}	else	{
+		var type = this.common[Math.floor(Math.random()*this.common.length)];
+	}
+
 	var haz = new Hazard(type, rad, center, (1.0+Math.random())*Math.sign(Math.random()-0.5));
 	this.hazardList.push(haz);
 	this.stage.addChild(haz.sprite);
-	// this.stage.addChild(haz.dbg);
 };
 
 HazardManager.prototype.destroyHazard = function(IDX) {
