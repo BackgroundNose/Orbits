@@ -117,10 +117,11 @@ Hazard.prototype.setupSS = function()	{
                 	"lroid3":4,
                 	"hobj1":5,
                 	"hobj2":6,
+                	"snotroid":7,
                 	"toasterB":[12, 16,"toasterB",0.25],
-                	"toasterG":[24, 28,"toasterG",0.25],
-                	"toasterS":[36, 40,"toasterS",0.25],
                 	"whale":[17, 22,"whale",0.15],
+                	"toasterG":[24, 28,"toasterG",0.25],
+                	"toasterS":[36, 40,"toasterS",0.25]
                 },
                 "images": [preload.getResult("hazards")]});
 }
@@ -133,10 +134,21 @@ Hazard.prototype.properties = {
 	"lroid3":{direction:false,lock:"T",hitrad:14},
 	"hobj1":{direction:false,lock:"T",hitrad:11},
 	"hobj2":{direction:false,lock:"T",hitrad:12},
+	"snotroid":{direction:false,lock:"F",hitrad:12},
 	"toasterB":{direction:true,lock:"T",hitrad:12},
+	"whale":{direction:true,lock:"T",hitrad:12},
 	"toasterG":{direction:true,lock:"T",hitrad:12},
 	"toasterS":{direction:true,lock:"T",hitrad:12},
-	"whale":{direction:true,lock:"T",hitrad:12}
 }
+
+Hazard.prototype.common = [
+	"sroid1", "moon1", "lroid1", "lroid2", "lroid3","snotroid"
+	];
+Hazard.prototype.rare = [
+	"hobj1", "hobj2"
+	];
+Hazard.prototype.superRare = [
+		"toasterB", "toasterG", "toasterS","whale"
+	];
 
 Hazard.prototype.objname = "HAZARD";

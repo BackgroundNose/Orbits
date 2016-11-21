@@ -7,7 +7,7 @@ function EventManager()	{
 							"When the probe is in flight you can give it a kick with further swipes.\n\nOr tap the screen to halt the probe and correct the course.",
 							"Now.\n\nI'll highlight the mine,\n\nYou smash it!"
 							]},
-			'end':{'msg':["Nice shot!\n\nThat's cleaned that up!",
+			'end':{'msg':["Nice shot!\n\nWe should smash all the mines we find!",
 			"And don't worry about the probes.\n\nWe've got loads of 'em!",
 			"Now.\n\nLets start the journey.\n\nWarp speed 9!"]},
 			'type':"mine",
@@ -19,7 +19,7 @@ function EventManager()	{
 		},
 		'1':{
 			'start':{'msg':["Aha!\n\nA pristine system.\n\nLets scan the planets and see what's here.",
-							"I've marked the target zones with dashed lines.\n\nLaunch a probe like last time, try to visit the zones and colect the science doops.\n\nWe'll need to fill the whole science bar to get something publishable."]},
+							"I've marked the target zones with dashed lines.\n\nLaunch a probe like last time, visit the zones and collect science doops.\n\nWe'll need to fill the whole science bar to get something publishable."]},
 			'end':{'msg':["Nice!\n\nWe'll have a Science paper together in no time!","Onwards!"]},
 			'type':"scan",
 			'scans':3,

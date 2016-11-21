@@ -3,9 +3,25 @@ function TextBox()	{
 	this.background = new createjs.Shape();
 	this.spanRect = new createjs.Rectangle();
 	this.text = new createjs.Text("THIS TEXT IS THE PLACEHOLDER TEXT", "22px Aldrich", "#434" );
-	this.faceImg = undefined;	// Set by form box.
+	this.text.lineWidth = 400;
 	this.textBorder = new Vector(30,40);
 	this.charWidth = 18;
+
+	this.sprite = new createjs.Sprite(new createjs.SpriteSheet({
+			"frames": {
+                "width": 70,
+                "height": 189,
+                "regX": 0,
+                "regY": 0
+            },
+            "animations":{
+            	"happy":0,
+            	"blank":1
+            },
+            "images": [preload.getResult("computer")]})
+		);
+	this.sprite.gotoAndStop("blank");
+	this.compBackground = new createjs.Bitmap(preload.getResult("compBackground"));
 }
 
 TextBox.prototype.formBox = function(text, img, width, height, buttonText) {
@@ -23,17 +39,31 @@ TextBox.prototype.formBox = function(text, img, width, height, buttonText) {
 	this.messages = text;
 
 	this.display.addChild(this.text);
-	this.text.text = lineBreakString(this.messages[0], cpl);
+	// this.text.text = lineBreakString(this.messages[0], cpl);
+	this.text.text = this.messages[0];
 	this.messages.splice(0,1);
 	
 	this.text.x = this.textBorder.x;
 	this.text.y = this.textBorder.y;
 
+	if (img !== undefined)	{
+		this.sprite.gotoAndStop(img);
+	}	else	{
+		this.sprite.gotoAndStop("blank");
+	}
+
+	this.display.addChild(this.compBackground);
+	this.compBackground.x = this.text.x + this.text.lineWidth + 20;
+	this.compBackground.y = this.text.y;
+
+	this.display.addChild(this.sprite);
+	this.sprite.x = this.compBackground.x + 70;
+	this.sprite.y = this.compBackground.y + 20;
+
 	var buttonWidth = 175;
 	var buttonHeight = 50;
 	this.button = new Button("Continue", new createjs.Rectangle(0,0,buttonWidth,buttonHeight)); 
 	this.button.moveTo({'x':width-(buttonWidth+30), 'y':height-(buttonHeight+20)});
-
 
 	this.display.addChild(this.button.stage);
 

@@ -63,7 +63,7 @@ function Game()
 
 	this.eventManager = new EventManager();
 
-	this.textBoxWidth = 700;
+	this.textBoxWidth = 900;
 	this.textBoxHeight = 500;
 
 	this.midProg = 500;
@@ -472,12 +472,9 @@ Game.prototype.setupLevel = function()	{
 			result = this.planetManager.makeScanPath(shipSpawn, 2, 5, 15, 
 						toScan, this.probeManager);
 			if (result !== undefined)	{
-				if (DEBUG)	{
-					this.UI.drawPath(result.path);
-				}
 				this.planetManager.levelType = "scan";
 				this.planetManager.addTargetGraphics();
-				this.probeManager.setScanRequired(toScan);
+				this.probeManager.setScanRequired(result.scans.length);
 				this.planetManager.resetScanTargets();
 			}	else 	{
 				console.log("Panic making Mine Path")

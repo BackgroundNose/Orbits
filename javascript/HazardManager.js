@@ -1,27 +1,12 @@
 function HazardManager(particleManager)	{
 	this.stage = new createjs.Container();
 
-	this.dbg = new createjs.Shape();
-	this.stage.addChild(this.dbg)
 	this.hazardList = [];
 
 	this.pm = particleManager;
-
-	this.common = [
-		"sroid1", "moon1", "lroid1", "lroid2", "lroid3","whale"
-		];
-	this.rare = [
-		"hobj1", "hobj2"
-		];
-	this.superRare = [
-			"toasterB", "toasterG", "toasterS"
-		];
 }
 
 HazardManager.prototype.Update = function(delta, planetMan) {
-	this.dbg.graphics.clear();
-	this.dbg.graphics.s("#55F").f("#F00");
-
 	for (var i = 0; i < this.hazardList.length; i++)	{
 		var haz = this.hazardList[i]
 		if (haz.kill)	{
@@ -29,11 +14,9 @@ HazardManager.prototype.Update = function(delta, planetMan) {
 			this.makeExposion(haz.position, false)
 		}	else if (!collidePointRect(haz.position, game.levelBoundary)
 						&& !game.transitioning)	{
-			console.log("Launched OUT THERE...", haz.position.toString())
 			haz.kill = true;
 		}
 
-		this.dbg.graphics.mt(haz.orbitalCenter.x, haz.orbitalCenter.y).lt(haz.position.x, haz.position.y)
 		for (var j = i+1; j < this.hazardList.length; j++)	{
 			if (collideCircleCircle(haz.position, haz.radius,
 					this.hazardList[j].position, this.hazardList[j].radius))	{
@@ -42,11 +25,8 @@ HazardManager.prototype.Update = function(delta, planetMan) {
 				this.makeExposion(haz.position,true);
 			}
 		}
-
-		haz.update(delta, planetMan);
-		
+		haz.update(delta, planetMan);	
 	}
-	this.dbg.graphics.ef();
 };
 
 HazardManager.prototype.makeExposion = function(pos, small)	{
@@ -68,11 +48,11 @@ HazardManager.prototype.spawnHazard = function(center, rad)	{
 
 	var num = Math.random()*100;
 	if (num < 0.2)	{
-		var type = this.superRare[Math.floor(Math.random()*this.superRare.length)];
+		var type = Hazard.prototype.superRare[Math.floor(Math.random()*Hazard.prototype.superRare.length)];
 	}	else if (num < 1)	{
-		var type = this.rare[Math.floor(Math.random()*this.rare.length)];
+		var type = Hazard.prototype.rare[Math.floor(Math.random()*Hazard.prototype.rare.length)];
 	}	else	{
-		var type = this.common[Math.floor(Math.random()*this.common.length)];
+		var type = Hazard.prototype.common[Math.floor(Math.random()*Hazard.prototype.common.length)];
 	}
 
 	var haz = new Hazard(type, rad, center, (1.0+Math.random())*Math.sign(Math.random()-0.5));
@@ -88,7 +68,6 @@ HazardManager.prototype.destroyHazard = function(IDX) {
 
 	this.stage.removeChild(this.hazardList[IDX].sprite);
 	this.hazardList.splice(IDX,1);
-	console.log("Killed hazard: ", IDX);
 };
 
 HazardManager.prototype.clearAll = function()	{

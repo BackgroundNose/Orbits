@@ -40,7 +40,7 @@ function init()  {
 		console.log("There is storage :)")
 		canSave = true;
 	}	else 	{
-		console.log("No browser storage... :(");
+		console.log("No storage... :(");
 		canSave = false;
 	}
 
@@ -88,6 +88,8 @@ function init()  {
 		{id:"smallStars", src: "Graphics/SmallStars.png"},
 		{id:"interestStars", src: "Graphics/InterestStars.png"},
 		{id:"hazards", src: "Graphics/Hazards.png"},
+		{id:"computer", src: "Graphics/computer.png"},
+		{id:"compBackground", src: "Graphics/ComputerBackground.png"}
 				]);
 
 	var audioPath = "Sound/"
